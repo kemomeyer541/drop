@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gold Border Test</title>
+    <style>
+        .golden-border {
+            border: 4px solid #D4AF37;
+            border-radius: 12px;
+            box-shadow: 0 0 8px rgba(212,175,55,0.6);
+            animation: prosticker-pulse 1.6s infinite;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        @keyframes prosticker-pulse {
+            0%,100% { 
+                box-shadow: 0 0 8px rgba(212,175,55,0.45); 
+                transform: translateZ(0); 
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(212,175,55,0.65); 
+            }
+        }
+        
+        .test-container {
+            width: 400px;
+            height: 300px;
+            background: #f0f0f0;
+            margin: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container golden-border">
+        <h1>Gold Border Test</h1>
+        <p>This should have a gold border around the entire container.</p>
+    </div>
+    
+    <script>
+        console.log('Gold border test loaded');
+        console.log('Container classes:', document.querySelector('.test-container').className);
+    </script>
+</body>
+</html>
