@@ -26,6 +26,12 @@ const LINKS = [
 
 export default function TopNav({ currentPage, onNavigate, onOpenFeature }: TopNavProps) {
   const { open: openChat, focus: focusChat, state: chatState } = useChat();
+  const [animationKey, setAnimationKey] = React.useState(0);
+
+  // Trigger animation on page change
+  React.useEffect(() => {
+    setAnimationKey(prev => prev + 1);
+  }, [currentPage]);
 
   const handleLinkClick = (link: typeof LINKS[0]) => {
     if (['community', 'community-feed', 'pad', 'profile', 'book'].includes(link.to)) {
@@ -55,17 +61,9 @@ export default function TopNav({ currentPage, onNavigate, onOpenFeature }: TopNa
       <div className="mx-auto h-12 flex items-center justify-between px-6">
         {/* Left side - Logo/Brand */}
         <div className="flex items-center">
-          <motion.span 
-            className="text-lg font-bold dropsource-logo-enhanced cursor-pointer"
+          <div 
+            className="cursor-pointer flex"
             onClick={() => onNavigate('community')}
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 120, 
-              damping: 12,
-              duration: 0.6 
-            }}
             style={{ 
               background: 'linear-gradient(90deg, #00AEEF 0%, #8F63FF 100%)',
               WebkitBackgroundClip: 'text',
@@ -73,8 +71,35 @@ export default function TopNav({ currentPage, onNavigate, onOpenFeature }: TopNa
               backgroundClip: 'text'
             }}
           >
-            DropSource
-          </motion.span>
+            <motion.span 
+              key={`drop-${animationKey}`}
+              className="text-lg font-bold dropsource-logo-enhanced"
+              initial={{ y: -80, opacity: 0, scale: 0.5 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 200, 
+                damping: 15,
+                delay: 0.1
+              }}
+            >
+              Drop
+            </motion.span>
+            <motion.span 
+              key={`source-${animationKey}`}
+              className="text-lg font-bold dropsource-logo-enhanced"
+              initial={{ y: -80, opacity: 0, scale: 0.5 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 200, 
+                damping: 15,
+                delay: 0.4
+              }}
+            >
+              Source
+            </motion.span>
+          </div>
         </div>
 
         {/* Center - Navigation Links */}

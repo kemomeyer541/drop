@@ -5109,17 +5109,17 @@ html {
   }
 }
 
-@keyframes logo-shimmer {
+@keyframes logo-glow {
   0% {
-    background: linear-gradient(90deg, #b8e6f0 0%, #98c1f5 20%, #7da8f7 40%, #b19cd9 60%, #c8a2c8 80%, plum 100%);
+    filter: drop-shadow(0 0 8px rgba(0, 174, 239, 0.3)) drop-shadow(0 0 16px rgba(143, 99, 255, 0.2));
   }
 
   50% {
-    background: linear-gradient(90deg, #d4f1f7 0%, #b8e6f0 20%, #98c1f5 40%, #e6b3e6 60%, #f0c8f0 80%, #f8e8f8 100%);
+    filter: drop-shadow(0 0 16px rgba(0, 174, 239, 0.6)) drop-shadow(0 0 32px rgba(143, 99, 255, 0.4));
   }
 
   100% {
-    background: linear-gradient(90deg, #b8e6f0 0%, #98c1f5 20%, #7da8f7 40%, #b19cd9 60%, #c8a2c8 80%, plum 100%);
+    filter: drop-shadow(0 0 8px rgba(0, 174, 239, 0.3)) drop-shadow(0 0 16px rgba(143, 99, 255, 0.2));
   }
 }
 
@@ -5189,8 +5189,9 @@ html {
 }
 
 .dropsource-logo-enhanced:hover {
-  filter: drop-shadow(0 0 25px #ffffff26) drop-shadow(0 0 45px #dda0dd4d);
-  animation: 2s ease-in-out logo-shimmer;
+  animation: logo-glow 2s ease-in-out;
+  transform: scale(1.02);
+  transition: all 0.3s ease;
 }
 
 .dropsource-toolbar {

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -192,7 +193,7 @@ export function CommunityHub({ onNavigate, onOpenFeature }: CommunityHubProps) {
         
         {/* Brand Name - Center Top */}
         <div className="text-center" style={{ marginTop: '0px', marginBottom: '8px' }}>
-          <h1 
+          <div 
             className="dropsource-logo-enhanced"
             style={{ 
               fontSize: '54px', 
@@ -206,11 +207,37 @@ export function CommunityHub({ onNavigate, onOpenFeature }: CommunityHubProps) {
               textShadow: '0 0 30px rgba(184, 230, 240, 0.4), 0 0 60px rgba(177, 156, 217, 0.3)',
               filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.15))',
               margin: 0,
-              position: 'relative'
+              position: 'relative',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '0.2em'
             }}
           >
-            Drop Source
-          </h1>
+            <motion.span
+              initial={{ y: -200, opacity: 0, rotateX: -90, scale: 0.6 }}
+              animate={{ y: 0, opacity: 1, rotateX: 0, scale: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
+                delay: 0.5
+              }}
+            >
+              Drop
+            </motion.span>
+            <motion.span
+              initial={{ y: -200, opacity: 0, rotateX: -90, scale: 0.6 }}
+              animate={{ y: 0, opacity: 1, rotateX: 0, scale: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
+                delay: 1.0
+              }}
+            >
+              Source
+            </motion.span>
+          </div>
           
           {/* Rolling Stats Component */}
           <RollingStats />
