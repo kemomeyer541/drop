@@ -27,10 +27,14 @@ interface ProStickerSidebarProps {
 }
 
 const BRUSH_TYPES = [
-  { id: 'pencil', name: 'Pencil', icon: '✏️', description: 'Smooth drawing' },
+  { id: 'pencil', name: 'Pencil', icon: '✏️', description: 'Clean lines' },
   { id: 'marker', name: 'Marker', icon: '🖍️', description: 'Bold strokes' },
-  { id: 'texture', name: 'Texture', icon: '🎨', description: 'Textured brush' },
-  { id: 'smudge', name: 'Smudge', icon: '👆', description: 'Blend colors' }
+  { id: 'airbrush', name: 'Airbrush', icon: '💨', description: 'Soft spray' },
+  { id: 'watercolor', name: 'Watercolor', icon: '🎨', description: 'Transparent paint' },
+  { id: 'oil', name: 'Oil Paint', icon: '🖌️', description: 'Thick texture' },
+  { id: 'crayon', name: 'Crayon', icon: '🖍️', description: 'Textured drawing' },
+  { id: 'texture', name: 'Texture', icon: '✨', description: 'Pattern brush' },
+  { id: 'eraser', name: 'Eraser', icon: '🧹', description: 'Remove strokes' }
 ];
 
 const COLOR_PRESETS = [
@@ -44,7 +48,7 @@ export function ProStickerSidebar({ isActive, onExport }: ProStickerSidebarProps
   const [brushSize, setBrushSize] = useState(5);
   const [brushOpacity, setBrushOpacity] = useState(1);
   const [brushColor, setBrushColor] = useState('#FFB039');
-  const [brushType, setBrushType] = useState<'pencil' | 'marker' | 'texture' | 'smudge'>('pencil');
+  const [brushType, setBrushType] = useState<string>('pencil');
   const [layers, setLayers] = useState<any[]>([]);
   const [activeLayerIndex, setActiveLayerIndex] = useState(0);
 
@@ -78,13 +82,31 @@ export function ProStickerSidebar({ isActive, onExport }: ProStickerSidebarProps
     setBrushColor(color);
   };
 
-  const handleBrushTypeChange = (type: 'pencil' | 'marker' | 'texture' | 'smudge') => {
+  const handleBrushTypeChange = (type: string) => {
     setBrushType(type);
+    if ((window as any).ProStickerModule) {
+      (window as any).ProStickerModule.selectTool(type, {
+        color: brushColor,
+        width: brushSize,
+        opacity: brushOpacity
+      });
+    }
   };
 
   const handleShapeTool = (shape: 'rect' | 'circle' | 'polygon' | 'freeform') => {
     if (!(window as any).ProStickerModule) return;
-    (window as any).ProStickerModule.addShape(shape);
+    const shapeMap: Record<string, string> = {
+      'rect': 'rectangle',
+      'circle': 'circle',
+      'polygon': 'triangle',
+      'freeform': 'pencil'
+    };
+    const mappedShape = shapeMap[shape] || shape;
+    if (shape === 'freeform') {
+      (window as any).ProStickerModule.selectTool('pencil');
+    } else {
+      (window as any).ProStickerModule.addShape(mappedShape);
+    }
   };
 
   const handleUndo = () => {
@@ -181,11 +203,12 @@ export function ProStickerSidebar({ isActive, onExport }: ProStickerSidebarProps
                   key={brush.id}
                   variant={brushType === brush.id ? "default" : "outline"}
                   size="sm"
-                  onClick={() => handleBrushTypeChange(brush.id as any)}
-                  className="text-xs justify-start"
+                  onClick={() => handleBrushTypeChange(brush.id)}
+                  className="text-xs justify-start h-auto py-2"
+                  title={brush.description}
                 >
-                  <span className="mr-2">{brush.icon}</span>
-                  {brush.name}
+                  <span className="mr-1">{brush.icon}</span>
+                  <span className="truncate">{brush.name}</span>
                 </Button>
               ))}
             </div>

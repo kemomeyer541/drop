@@ -5209,7 +5209,7 @@ html {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: purple-sheen-wave 60s infinite;
+  animation: purple-sheen-wave 10s infinite;
   pointer-events: none;
   z-index: 1;
   mix-blend-mode: overlay;
@@ -5222,42 +5222,31 @@ html {
 }
 
 @keyframes purple-sheen-wave {
-  /* Blue phase - 27 seconds */
-  0%, 45% {
+  /* Blue phase - 7 seconds */
+  0%, 70% {
     left: -100%;
     opacity: 0;
   }
   
-  /* Purple sheen sweeps across - 3 seconds */
-  45.5% {
+  /* Purple sheen sweeps across - 1 second */
+  75% {
     left: -100%;
-    opacity: 0.8;
+    opacity: 1;
   }
   
-  47.5% {
+  85% {
     left: 100%;
-    opacity: 0.8;
+    opacity: 1;
   }
   
-  /* Purple phase - 28 seconds */
-  48%, 95% {
+  /* Purple phase - 1 second */
+  90%, 95% {
     left: 100%;
-    opacity: 0.8;
-  }
-  
-  /* Blue sheen sweeps back - 3 seconds */
-  95.5% {
-    left: 100%;
-    opacity: 0.8;
-  }
-  
-  97.5% {
-    left: -100%;
-    opacity: 0.8;
+    opacity: 1;
   }
   
   /* Back to blue */
-  98%, 100% {
+  100% {
     left: -100%;
     opacity: 0;
   }
