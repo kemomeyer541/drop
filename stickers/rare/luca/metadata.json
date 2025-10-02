@@ -1,0 +1,22 @@
+{
+  "id": "luca",
+  "name": "Luca",
+  "description": "ask me about my elmo impression",
+  "rarity": "rare",
+  "type": "sticker",
+  "totalSupply": 100,
+  "price": 10,
+  "creator": {
+    "redditUsername": "u/im_here_now_dud3",
+    "displayName": "im_here_now_dud3",
+    "socialLinks": {
+      "reddit": "https://www.reddit.com/user/im_here_now_dud3/",
+      "portfolio": "",
+      "twitter": "",
+      "instagram": ""
+    }
+  },
+  "tags": ["character", "furry", "playful"],
+  "submissionDate": "2025-01-27"
+}
+

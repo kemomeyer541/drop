@@ -37,6 +37,23 @@ const CHANNELS = [
   { id: 'stickers', name: '#stickers', active: false, unread: 0 },
 ];
 
+// Function to replace placeholders in chat messages
+const processChatMessage = (message: string, currentUser: string): string => {
+  const adjectives = ['sick', 'fire', 'crazy', 'wild', 'insane', 'epic', 'legendary', 'cursed', 'goated'];
+  const genres = ['trap', 'lo-fi', 'synthwave', 'drill', 'ambient', 'dubstep', 'house', 'techno'];
+  const collectibles = ['sticker', 'card', 'collectible', 'drop'];
+  const software = ['FL Studio', 'Ableton', 'Logic', 'Pro Tools', 'Reaper'];
+  const decades = ['80s', '90s', '2000s', '2010s'];
+  
+  return message
+    .replace(/\{user\}/g, currentUser)
+    .replace(/\{adjective\}/g, adjectives[Math.floor(Math.random() * adjectives.length)])
+    .replace(/\{genre\}/g, genres[Math.floor(Math.random() * genres.length)])
+    .replace(/\{collectible\}/g, collectibles[Math.floor(Math.random() * collectibles.length)])
+    .replace(/\{software\}/g, software[Math.floor(Math.random() * software.length)])
+    .replace(/\{decade\}/g, decades[Math.floor(Math.random() * decades.length)]);
+};
+
 // Generate sample messages using contentData
 const generateSampleMessage = (id: string): Message => {
   const user = generateUsername();
@@ -68,6 +85,9 @@ const generateSampleMessage = (id: string): Message => {
       serial: card.serial,
       rarity: card.rarity
     }];
+  } else {
+    // Process the content to replace placeholders
+    content = processChatMessage(content, user);
   }
   
   return {
@@ -171,6 +191,30 @@ export function ChatPopout({ onClose }: ChatPopoutProps) {
     }
   }, []);
 
+  const renderMessageContent = (content: string) => {
+    // Split content by quoted strings (sticker names)
+    const parts = content.split(/"([^"]*)"/g);
+    
+    return parts.map((part, index) => {
+      // If it's a quoted string, make it a clickable sticker link
+      if (index % 2 === 1) {
+        return (
+          <span
+            key={index}
+            className="text-blue-400 hover:text-blue-300 cursor-pointer underline decoration-dotted"
+            onClick={() => {
+              // In a real app, this would open the sticker details
+              console.log(`Clicked on sticker: ${part}`);
+            }}
+          >
+            "{part}"
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   const getRarityColor = (rarity: string) => {
     const colors = {
       common: '#22C55E',
@@ -204,7 +248,7 @@ export function ChatPopout({ onClose }: ChatPopoutProps) {
           )}
           
           <div className={`text-sm ${isSystem ? 'text-gray-400 italic' : 'text-gray-200'}`}>
-            {message.content}
+            {renderMessageContent(message.content)}
           </div>
           
           {message.attachments && (

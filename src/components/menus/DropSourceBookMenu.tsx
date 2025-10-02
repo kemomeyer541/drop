@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Minimize2, Star, BookOpen, ShoppingCart } from 'lucide-react';
+import { X, Minimize2, Star, BookOpen, ShoppingCart, Sparkles } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { COLLECTIBLES_POOL, getRarityColor, getRarityBgColor } from '../../utils/collectibles';
+import { COLLECTIBLES_POOL, getRarityColor, getRarityBgColor, buildImagePath, imageRegistry } from '../../utils/collectibles';
+import { ImageBlock } from '../SmartImage';
 
 interface DropSourceBookMenuProps {
   onClose: () => void;
@@ -29,6 +30,19 @@ export function DropSourceBookMenu({
   onSizeChange,
   onFocus
 }: DropSourceBookMenuProps) {
+  // Add CSS animation for shine effect
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes shine {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -51,6 +65,7 @@ export function DropSourceBookMenu({
       x: e.clientX - dragOffset.x,
       y: e.clientY - dragOffset.y
     };
+    
     setPosition(newPosition);
     onPositionChange(newPosition);
   };
@@ -63,6 +78,7 @@ export function DropSourceBookMenu({
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
@@ -77,30 +93,38 @@ export function DropSourceBookMenu({
   return (
     <TooltipProvider>
       <div
-        className={`fixed rounded-2xl border border-white/8 bg-zinc-950/90 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.6)] max-h-[72vh] w-[720px] overflow-hidden flex flex-col ${isDragging ? 'dragging' : ''}`}
+        className="fixed bg-gray-900 border border-gray-700 rounded-lg shadow-2xl dropsource-window flex flex-col"
         style={{
           left: position.x,
           top: position.y,
-          zIndex,
-          cursor: isDragging ? 'grabbing' : 'default'
+          width: Math.max(width, 800),
+          height: Math.max(height, 600),
+          zIndex: zIndex,
+          backgroundColor: '#0F1520',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+          boxShadow: '0 0 40px rgba(59, 130, 246, 0.2)',
         }}
-        onClick={onFocus}
+        onMouseDown={handleMouseDown}
       >
         {/* Header */}
-        <div 
-          className="h-12 px-4 flex items-center justify-between border-b border-white/5 cursor-move"
-          onMouseDown={handleMouseDown}
-        >
-          <div className="flex items-center gap-3">
-            <BookOpen className="w-5 h-5" style={{ color: '#00AEEF' }} />
-            <h3 style={{ color: '#E6ECF3', fontSize: '16px', fontWeight: '600' }}>
-              Drop Source Book
-            </h3>
+        <div className="flex items-center justify-between p-3 border-b flex-shrink-0" style={{
+          background: 'linear-gradient(135deg, #1a1f2e 0%, #0a0f1a 100%)',
+          borderBottom: '1px solid rgba(59, 130, 246, 0.2)'
+        }}>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📚</span>
+            <h3 className="text-xl font-bold" style={{
+              background: 'linear-gradient(90deg, #00AEEF 0%, #8F63FF 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Drop Source Book</h3>
             <Badge 
-              style={{ 
-                backgroundColor: 'rgba(0, 174, 239, 0.1)',
-                color: '#00AEEF',
-                border: '1px solid rgba(0, 174, 239, 0.2)'
+              className="text-xs"
+              style={{
+                backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                color: '#FBBF24',
+                border: '1px solid rgba(251, 191, 36, 0.3)'
               }}
             >
               {COLLECTIBLES_POOL.length}
@@ -109,179 +133,233 @@ export function DropSourceBookMenu({
           
           <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
               size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0 text-gray-400 hover:text-white"
               onClick={onMinimize}
-              className="text-gray-400 hover:text-white"
             >
-              <Minimize2 className="w-4 h-4" />
+              <Minimize2 className="w-3 h-3" />
             </Button>
-            
             <Button
-              variant="ghost"
               size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0 text-gray-400 hover:text-white"
               onClick={onClose}
-              className="text-gray-400 hover:text-red-400"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3" />
             </Button>
           </div>
+        </div>
+
+        {/* Sticky Description */}
+        <div className="sticky top-0 z-10 bg-[#1a1f2e] p-4 text-center border-b border-white/5">
+          <p className="dropsource-text-secondary">
+            Master catalog of all DropSource collectibles • Stickers = purchasable • Cards = collection only
+          </p>
         </div>
 
         {/* Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 book-content dropsource-custom-scrollbar">
-          <div className="p-4 text-center border-b border-white/5 -m-4 mb-4">
-            <p className="dropsource-text-secondary">
-              Master catalog of all DropSource collectibles • Stickers = purchasable • Cards = collection only
-            </p>
-          </div>
+        <div className="flex-1 overflow-y-auto p-4 book-content dropsource-custom-scrollbar">
 
-          <div className="grid grid-cols-2 gap-4">
-            {COLLECTIBLES_POOL.map((item) => (
-              <div
-                key={item.id}
-                className="relative group"
-              >
-                <Card 
-                  className="dropsource-card p-4 text-center dropsource-clickable transition-all relative"
+          <div className="grid grid-cols-3 gap-6">
+            {COLLECTIBLES_POOL.filter(item => item.image || imageRegistry[item.id]).map((item) => {
+              const rarityColor = getRarityColor(item.rarity);
+              const rarityBg = getRarityBgColor(item.rarity);
+              
+              return (
+                <div
+                  key={item.id}
+                  className="relative rounded-xl overflow-hidden transition-all duration-300"
                   style={{
-                    borderColor: getRarityColor(item.rarity),
-                    borderWidth: '2px',
-                    minHeight: '200px'
+                    backgroundColor: '#1a1f2e',
+                    border: `2px solid ${rarityColor}`,
+                    transform: 'scale(1)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = `0 8px 24px rgba(0,0,0,0.6), 0 0 16px ${getRarityColor(item.rarity)}80`;
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = `0 15px 30px ${rarityBg}`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
                   }}
                 >
-                  {/* Serial Number Overlay */}
+                  {/* Fixed Container - defines panel boundaries */}
                   <div 
-                    className="dropsource-serial-overlay"
+                    className="relative w-full overflow-hidden"
                     style={{
-                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      backdropFilter: 'blur(8px)',
-                      color: getRarityColor(item.rarity),
-                      fontSize: '10px',
-                      fontFamily: 'JetBrains Mono, Fira Code, monospace',
-                      fontWeight: '600',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                      border: `1px solid ${getRarityColor(item.rarity)}`,
-                      boxShadow: `0 0 8px ${getRarityColor(item.rarity)}40`
+                      background: `linear-gradient(135deg, ${rarityBg}, rgba(255,255,255,0.05))`,
                     }}
                   >
-                    Serial {item.serial}
-                  </div>
+                    {/* Image Container - let ImageBlock handle the square aspect ratio */}
+                    <div className="relative z-20">
+                      {(() => {
+                        const src = item.image || buildImagePath(item);
+                        console.log('DropSourceBook rendering:', item.id, 'src:', src);
+                        
+                        if (!src) return null;
+                        
+                        const isPixel = item.name?.toLowerCase().includes('pixel');
+                        
+                        return (
+                          <ImageBlock
+                            src={src}
+                            alt={item.name}
+                            pixelated={isPixel}
+                          />
+                        );
+                      })()}
+                    </div>
 
-                  {/* Item Display */}
-                  <div className="text-4xl mb-3 relative">
-                    {getTypeIcon(item.type)}
-                  </div>
-                  <h4 className="font-semibold dropsource-text-primary mb-2 text-sm">
-                    {item.name}
-                  </h4>
-                  <Badge 
-                    className="text-xs mb-3"
-                    style={{
-                      backgroundColor: getRarityBgColor(item.rarity),
-                      color: getRarityColor(item.rarity),
-                      border: `1px solid ${getRarityColor(item.rarity)}`
-                    }}
-                  >
-                    {item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)} {item.type}
-                  </Badge>
+                    {/* Shine effect - covers full container */}
+                    {(item.rarity === 'legendary') && (
+                      <div 
+                        className="absolute inset-0 opacity-40 z-30"
+                        style={{
+                          background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)',
+                          animation: 'shine 2s ease-in-out infinite',
+                        }}
+                      />
+                    )}
 
-                  {/* Hover Metadata */}
-                  <div className="absolute inset-0 bg-black/90 backdrop-blur-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-center p-3 z-10">
-                    <div className="space-y-2 text-xs">
-                      <div>
-                        <span className="dropsource-text-tertiary">Type: </span>
-                        <span className="dropsource-text-primary font-medium">
-                          {item.type === 'sticker' ? 'Sticker (Purchasable)' : 'Card (Collection Only)'}
-                        </span>
-                      </div>
-                      
-                      <div>
-                        <span className="dropsource-text-tertiary">Rarity: </span>
-                        <Badge 
-                          className="text-xs ml-1"
-                          style={{
-                            backgroundColor: getRarityBgColor(item.rarity),
-                            color: getRarityColor(item.rarity),
-                            border: `1px solid ${getRarityColor(item.rarity)}`
-                          }}
-                        >
-                          {item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}
-                        </Badge>
-                      </div>
-                      
-                      <div>
-                        <span className="dropsource-text-tertiary">Total Supply: </span>
-                        <span className="dropsource-text-primary font-medium">
-                          {item.totalSupply.toLocaleString()}
-                        </span>
-                      </div>
-                      
-                      <div>
-                        <span className="dropsource-text-tertiary">Serial: </span>
-                        <span 
-                          className="font-mono font-medium"
-                          style={{ 
-                            color: getRarityColor(item.rarity),
-                            textShadow: `0 0 8px ${getRarityColor(item.rarity)}40`
-                          }}
-                        >
-                          {item.serial}
-                        </span>
-                      </div>
-                      
-                      {item.type === 'sticker' && (
-                        <div className="pt-2 border-t border-gray-700">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-1">
-                              <span className="text-sm font-semibold" style={{ color: '#00AEEF' }}>
-                                {item.rarity === 'common' ? '$5' : 
-                                 item.rarity === 'rare' ? '$10' :
-                                 item.rarity === 'epic' ? '$15' : 
-                                 item.rarity === 'legendary' ? '$20' : '$5'}
-                              </span>
-                            </div>
-                          </div>
-                          <Button 
-                            className="w-full dropsource-btn-primary text-xs flex items-center gap-2"
-                            onClick={() => console.log(`Buy ${item.name}`)}
-                          >
-                            <ShoppingCart className="w-3 h-3" />
-                            Buy Sticker
-                          </Button>
-                        </div>
-                      )}
-                      
-                      {item.type === 'card' && (
-                        <div className="pt-2 border-t border-gray-700">
-                          <span 
-                            className="text-xs px-3 py-1 rounded block text-center"
-                            style={{ 
-                              backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                              color: '#A855F7',
-                              border: '1px solid rgba(168, 85, 247, 0.2)'
-                            }}
-                          >
-                            View Only - Available via Auction/Trade
-                          </span>
-                        </div>
-                      )}
+                    {/* Overlays - absolutely positioned on top */}
+                    {/* Rarity Badge */}
+                    <div 
+                      className="absolute top-2 left-2 px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold z-40"
+                      style={{
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        border: `2px solid ${rarityColor}`,
+                        color: rarityColor,
+                        backdropFilter: 'blur(4px)',
+                        boxShadow: `0 0 8px ${rarityColor}80`
+                      }}
+                    >
+                      {item.rarity === 'legendary' ? <Star className="w-4 h-4" fill="currentColor" /> : <Sparkles className="w-4 h-4" />}
+                      {item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}
+                    </div>
+
+                    {/* Serial Number - BOTTOM RIGHT */}
+                    <div 
+                      className="absolute bottom-2 right-2 px-2 py-1 rounded-full text-xs font-bold z-40"
+                      style={{
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        border: `2px solid ${rarityColor}`,
+                        color: rarityColor,
+                        backdropFilter: 'blur(4px)',
+                        boxShadow: `0 0 8px ${rarityColor}80`
+                      }}
+                    >
+                      {item.serial}
                     </div>
                   </div>
-                </Card>
-              </div>
-            ))}
+
+                  {/* Item Info */}
+                  <div className="p-3">
+                    <h4 className="font-bold text-sm mb-2 truncate" style={{ color: '#F5F7FF' }}>
+                      {item.name}
+                    </h4>
+                    
+                    {/* Creator Info - Show for all cards */}
+                    <div className="mb-2">
+                      {item.creator ? (
+                        <>
+                          <p className="text-xs text-gray-400">
+                            by {item.creator.displayName}
+                          </p>
+                          {item.creator.portfolio && (
+                            <a 
+                              href={item.creator.portfolio}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              @{item.creator.redditUsername}
+                            </a>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-xs text-gray-400">
+                          by Unknown Creator
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Description - Show for all cards */}
+                    <div className="mb-2">
+                      <p className="text-xs text-gray-300">
+                        {item.name === 'Pixel Art' 
+                          ? 'The FIRST DESIGN FOR DROP SOURCE❤️❤️❤️❤️'
+                          : item.name === 'Luca'
+                          ? 'ask me about my elmo impression'
+                          : 'A unique collectible card from Drop Source'
+                        }
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 mb-3">
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: '#A9B7C6', fontSize: '11px', textTransform: 'capitalize' }}>
+                          {item.type}
+                        </span>
+                        <span style={{ color: '#00FF00', fontSize: '11px', fontWeight: '600' }}>
+                          ${item.rarity === 'legendary' ? 15 : item.rarity === 'epic' ? 12 : item.rarity === 'rare' ? 10 : 5}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col gap-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          className="px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1"
+                          style={{
+                            backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                            border: '1px solid rgba(251, 191, 36, 0.3)',
+                            color: '#fbbf24',
+                          }}
+                        >
+                          <Star className="w-3 h-3" />
+                          View
+                        </button>
+
+                        <a
+                          href={item.creator?.portfolio || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer"
+                          style={{
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                            color: '#3b82f6',
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <BookOpen className="w-3 h-3" />
+                          Info
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes shine {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
+        @keyframes ds-shine {
+          0% { transform: translateX(-110%); }
+          100% { transform: translateX(110%); }
+        }
+      `}</style>
     </TooltipProvider>
   );
 }

@@ -146,12 +146,17 @@ const getRarityTextColor = (rarity: string) => {
 
 const currentStars = 15420; // Mock user's current stars
 
+// Enhanced dopamine features
+const DAILY_BONUS_MULTIPLIER = 1.5;
+const STREAK_BONUS_MULTIPLIER = 2.0;
+const RARE_PURCHASE_BONUS = 100;
+
 export function StarShop({ 
   onClose, 
   onMinimize,
   initialPosition = { x: 100, y: 100 },
-  width = 800,
-  height = 700,
+  width = 500,
+  height = 600,
   zIndex = 1000,
   onPositionChange,
   onSizeChange,
@@ -162,16 +167,54 @@ export function StarShop({
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  
+  // Enhanced dopamine features
+  const [userStars, setUserStars] = useState(currentStars);
+  const [purchaseStreak, setPurchaseStreak] = useState(0);
+  const [lastPurchaseTime, setLastPurchaseTime] = useState<Date | null>(null);
+  const [showPurchaseAnimation, setShowPurchaseAnimation] = useState(false);
+  const [recentPurchase, setRecentPurchase] = useState<string | null>(null);
 
   const purchaseItem = (itemId: number) => {
     const item = shopItems.find(i => i.id === itemId);
     if (!item) return;
 
-    if (item.price <= currentStars && !purchasedItems.includes(itemId)) {
-      setPurchasedItems(prev => [...prev, itemId]);
+    if (item.price <= userStars && !purchasedItems.includes(itemId)) {
+      // Calculate bonus stars based on rarity and streak
+      let bonusStars = 0;
+      if (item.rarity === 'legendary' || item.rarity === 'mythic') {
+        bonusStars = RARE_PURCHASE_BONUS;
+      }
       
-      // Show purchase confirmation
-      alert(`Successfully purchased ${item.name}! Check your backpack.`);
+      // Check for daily bonus
+      const now = new Date();
+      const isDailyBonus = !lastPurchaseTime || 
+        (now.getTime() - lastPurchaseTime.getTime()) > 24 * 60 * 60 * 1000;
+      
+      if (isDailyBonus) {
+        bonusStars += Math.floor(item.price * (DAILY_BONUS_MULTIPLIER - 1));
+      }
+      
+      // Check for streak bonus
+      if (purchaseStreak > 0) {
+        bonusStars += Math.floor(item.price * (STREAK_BONUS_MULTIPLIER - 1));
+      }
+      
+      // Update state
+      setPurchasedItems(prev => [...prev, itemId]);
+      setUserStars(prev => prev - item.price + bonusStars);
+      setPurchaseStreak(prev => prev + 1);
+      setLastPurchaseTime(now);
+      setRecentPurchase(item.name);
+      setShowPurchaseAnimation(true);
+      
+      // Show enhanced purchase confirmation with dopamine boost
+      const bonusText = bonusStars > 0 ? ` +${bonusStars} bonus stars!` : '';
+      const streakText = purchaseStreak > 0 ? ` (${purchaseStreak + 1} streak!)` : '';
+      alert(`🎉 Successfully purchased ${item.name}!${bonusText}${streakText} Check your backpack.`);
+      
+      // Hide animation after 3 seconds
+      setTimeout(() => setShowPurchaseAnimation(false), 3000);
     } else if (purchasedItems.includes(itemId)) {
       alert('You already own this item!');
     } else {
@@ -248,8 +291,17 @@ export function StarShop({
             <div className="flex items-center dropsource-spacing-xs">
               <Star className="w-5 h-5 dropsource-icon-outlined" style={{ color: 'var(--dropsource-brand)' }} />
               <span className="dropsource-text-primary" style={{ fontSize: 'var(--text-md)', fontWeight: '600' }}>
-                {currentStars.toLocaleString()}⭐
+                {userStars.toLocaleString()}⭐
               </span>
+              {purchaseStreak > 0 && (
+                <span className="ml-2 px-2 py-1 rounded text-xs font-bold" style={{
+                  backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                  color: '#22c55e',
+                  border: '1px solid rgba(34, 197, 94, 0.3)'
+                }}>
+                  🔥 {purchaseStreak} streak
+                </span>
+              )}
             </div>
             {onMinimize && (
               <button
@@ -373,15 +425,20 @@ export function StarShop({
                             <TooltipTrigger asChild>
                               <button
                                 onClick={() => purchaseItem(item.id)}
-                                disabled={item.price > currentStars}
+                                disabled={item.price > userStars}
                                 className="dropsource-btn-primary dropsource-focus-visible"
                                 style={{ 
                                   fontSize: 'var(--text-xs)', 
                                   padding: 'calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5)',
-                                  opacity: item.price > currentStars ? '0.5' : '1'
+                                  opacity: item.price > userStars ? '0.5' : '1',
+                                  position: 'relative',
+                                  overflow: 'hidden'
                                 }}
                               >
-                                Buy
+                                {showPurchaseAnimation && recentPurchase === item.name && (
+                                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 animate-pulse"></div>
+                                )}
+                                <span className="relative z-10">Buy</span>
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>

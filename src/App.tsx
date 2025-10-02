@@ -45,6 +45,9 @@ import { DCPPage } from './components/DCPPage';
 import { NewsPage } from './components/NewsPage';
 import { LiveChatPanel } from './components/LiveChatPanel';
 import TopNav from './components/TopNav';
+import { DailyReward } from './components/DailyReward';
+import { GamificationManager } from './components/GamificationManager';
+import { EasterEggs } from './components/EasterEggs';
 
 interface Project {
   id: string;
@@ -298,7 +301,7 @@ export default function App() {
       ai: { width: 500, height: 700 },
       buddy: { width: 400, height: 600 },
       projects: { width: 500, height: 650 },
-      shop: { width: 800, height: 700 },
+      shop: { width: 500, height: 600 },
       contact: { width: 500, height: 600 },
       challenges: { width: 600, height: 700 },
       auction: { width: 500, height: 600 },
@@ -502,9 +505,10 @@ export default function App() {
   };
 
   return (
-    <ChatProvider>
-      <TooltipProvider>
-        <div className="h-screen dropsource-bg dropsource-text-primary flex flex-col overflow-hidden">
+    <EasterEggs>
+      <ChatProvider>
+        <TooltipProvider>
+          <div className="h-screen dropsource-bg dropsource-text-primary flex flex-col overflow-hidden">
       {/* Top Navigation - Hide on community hub (home page) */}
       {currentPage !== 'community' && (
         <TopNav 
@@ -777,8 +781,15 @@ export default function App() {
 
         {/* Unified Chat Popout - Single instance mounted at root */}
         <UnifiedChatPopout />
+        
+        {/* Daily Reward - Global */}
+        <DailyReward />
+        
+        {/* Gamification Manager - Global Achievement Badges */}
+        <GamificationManager />
         </div>
       </TooltipProvider>
     </ChatProvider>
+    </EasterEggs>
   );
 }

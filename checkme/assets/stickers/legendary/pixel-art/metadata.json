@@ -1,0 +1,21 @@
+{
+  "id": "pixel-art",
+  "name": "Pixel Art",
+  "description": "The FIRST DESIGN FOR DROP SOURCE❤️❤️❤️❤️",
+  "rarity": "legendary",
+  "type": "card",
+  "totalSupply": 1,
+  "price": 10000000,
+  "creator": {
+    "redditUsername": "u/BridgetGlenn",
+    "displayName": "BridgetGlenn",
+    "socialLinks": {
+      "reddit": "https://reddit.com/u/BridgetGlenn",
+      "portfolio": "https://www.behance.net/karriejohnson11",
+      "twitter": "",
+      "instagram": ""
+    }
+  },
+  "tags": ["pixel", "art", "2d"],
+  "submissionDate": "2025-10-01"
+}

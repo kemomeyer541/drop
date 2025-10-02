@@ -65,14 +65,34 @@ export function DrawingCanvasPanel() {
     ctx.setLineDash([]);
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getEventPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    
+    if ('touches' in e) {
+      // Touch event
+      const touch = e.touches[0];
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+    } else {
+      // Mouse event
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // Prevent scrolling on touch devices
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
+    const { x, y } = getEventPos(e);
     setIsDrawing(true);
 
     const ctx = canvas.getContext('2d');
@@ -82,18 +102,17 @@ export function DrawingCanvasPanel() {
     ctx.moveTo(x, y);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
 
+    e.preventDefault(); // Prevent scrolling on touch devices
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const { x, y } = getEventPos(e);
 
     if (tool.type === 'pen') {
       ctx.globalCompositeOperation = 'source-over';
@@ -267,17 +286,23 @@ export function DrawingCanvasPanel() {
           ref={canvasRef}
           width={800}
           height={400}
-          className="w-full h-96 cursor-crosshair"
+          className="w-full h-96 cursor-crosshair touch-none"
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+          style={{ touchAction: 'none' }}
         />
       </div>
 
       {/* Instructions */}
       <div className="mt-4 dropsource-text-secondary text-sm">
-        Click and drag to draw. Use the toolbar to switch between pen and eraser, adjust size, and change colors.
+        Click/touch and drag to draw. Use the toolbar to switch between pen and eraser, adjust size, and change colors.
+        <br />
+        <span className="text-xs text-gray-500">Optimized for both mouse and touch devices</span>
       </div>
     </div>
   );

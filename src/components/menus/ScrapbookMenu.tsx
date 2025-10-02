@@ -1,51 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { X, Minimize2, Search, FileText, Plus, Star, Heart, Calendar, Filter, Grid, List } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { getScrapbookCollectibles, getRarityColor, getRarityBgColor, getStickerCollectibles, getCardCollectibles } from '../../utils/collectibles';
+import React, { useState } from 'react';
+import { X, Minimize2, Gavel, RefreshCw, ShoppingCart, Sparkles, Star, Zap } from 'lucide-react';
+import { 
+  Collectible, 
+  getScrapbookCollectibles, 
+  getRarityColor, 
+  getRarityBgColor,
+  buildImagePath,
+  imageRegistry
+} from '../../utils/collectibles';
+import { ImageBlock } from '../SmartImage';
 
 interface ScrapbookMenuProps {
   onClose: () => void;
   onMinimize: () => void;
   initialPosition: { x: number; y: number };
+  onPositionChange: (position: { x: number; y: number }) => void;
+  onFocus: () => void;
   width: number;
   height: number;
   zIndex: number;
-  onPositionChange: (position: { x: number; y: number }) => void;
-  onSizeChange: (size: { width: number; height: number }) => void;
-  onFocus: () => void;
 }
 
-// Use the new collectibles system - all items with buy buttons
-const SCRAPBOOK_ITEMS = getScrapbookCollectibles();
-
-export function ScrapbookMenu({
+export const ScrapbookMenu: React.FC<ScrapbookMenuProps> = ({
   onClose,
   onMinimize,
   initialPosition,
+  onPositionChange,
+  onFocus,
   width,
   height,
-  zIndex,
-  onPositionChange,
-  onSizeChange,
-  onFocus
-}: ScrapbookMenuProps) {
+  zIndex
+}) => {
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('stickers');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'stickers' | 'cards'>('all');
+
+  // Simulate user's collection (in real app, this would come from user data)
+  const userCollection = getScrapbookCollectibles();
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only allow dragging from the header bar, not from interactive content
     const target = e.target as HTMLElement;
     if (target.tagName === 'BUTTON' || target.closest('button')) return;
     if (target.closest('.scrapbook-content')) return;
-    if (target.closest('[data-no-drag]')) return;
     
     e.preventDefault();
     e.stopPropagation();
@@ -72,7 +70,7 @@ export function ScrapbookMenu({
     setIsDragging(false);
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -83,399 +81,353 @@ export function ScrapbookMenu({
     }
   }, [isDragging, dragOffset]);
 
-  const getTypeIcon = (type: string) => {
-    return type === 'sticker' ? '🎨' : '♦️';
+  const handleAuction = (item: Collectible) => {
+    console.log('Auction item:', item);
   };
 
-  // Filter items by tab
-  const filteredItems = SCRAPBOOK_ITEMS.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by collectible type
-    const matchesFilter = (activeTab === 'stickers' && item.type === 'sticker') ||
-                         (activeTab === 'cards' && item.type === 'card');
-    
-    return matchesSearch && matchesFilter;
+  const handleTrade = (item: Collectible) => {
+    console.log('Trade item:', item);
+  };
+
+  const getRarityIcon = (rarity: string) => {
+    if (rarity === 'legendary') {
+      return <Star className="w-3 h-3" fill="currentColor" />;
+    }
+    if (rarity === 'epic') {
+      return <Zap className="w-3 h-3" fill="currentColor" />;
+    }
+    return <Sparkles className="w-3 h-3" />;
+  };
+
+  const getRarityLabel = (rarity: string) => {
+    return rarity.charAt(0).toUpperCase() + rarity.slice(1);
+  };
+
+  const filteredCollection = userCollection.filter(item => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'stickers') return item.type === 'sticker';
+    if (activeFilter === 'cards') return item.type === 'card';
+    return true;
   });
+
 
   return (
     <div
-      className={`fixed rounded-2xl border border-white/8 bg-zinc-950/90 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.6)] max-h-[72vh] w-[720px] overflow-hidden flex flex-col ${isDragging ? 'dragging' : ''}`}
+      className="fixed rounded-2xl shadow-2xl overflow-hidden flex flex-col"
       style={{
         left: position.x,
         top: position.y,
+        width: `${width}px`,
+        height: `${height}px`,
         zIndex,
+        backgroundColor: '#0F1520',
+        border: '1px solid rgba(167, 139, 250, 0.3)',
+        boxShadow: '0 0 40px rgba(167, 139, 250, 0.2)',
         cursor: isDragging ? 'grabbing' : 'default'
       }}
       onClick={onFocus}
     >
       {/* Header */}
       <div 
-        className="h-12 px-4 flex items-center justify-between border-b border-white/5 cursor-move select-none"
+        className="h-14 px-4 flex items-center justify-between border-b cursor-move select-none"
+        style={{
+          background: 'linear-gradient(135deg, #1a1f2e 0%, #0a0f1a 100%)',
+          borderBottom: '1px solid rgba(167, 139, 250, 0.2)',
+        }}
         onMouseDown={handleMouseDown}
       >
         <div className="flex items-center gap-3">
-          <FileText className="w-5 h-5" style={{ color: '#00AEEF' }} />
-          <h3 style={{ color: '#E6ECF3', fontSize: '16px', fontWeight: '600' }}>
-            Scrapbook
+          <span className="text-2xl">📔</span>
+          <h3 className="text-xl font-bold" style={{ 
+            background: 'linear-gradient(90deg, #A78BFA, #FF6BAA)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>
+            My Scrapbook
           </h3>
-          <Badge 
-            style={{ 
-              backgroundColor: 'rgba(0, 174, 239, 0.1)',
-              color: '#00AEEF',
-              border: '1px solid rgba(0, 174, 239, 0.2)'
-            }}
-          >
-            {SCRAPBOOK_ITEMS.length}
-          </Badge>
         </div>
         
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className="text-gray-400 hover:text-white"
-          >
-            {viewMode === 'grid' ? <List className="w-4 h-4" /> : <Grid className="w-4 h-4" />}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={onMinimize}
-            className="text-gray-400 hover:text-white"
+            className="p-2 rounded-lg transition-colors duration-200"
+            style={{
+              backgroundColor: 'rgba(167, 139, 250, 0.1)',
+              border: '1px solid rgba(167, 139, 250, 0.2)',
+              color: '#A78BFA',
+            }}
           >
             <Minimize2 className="w-4 h-4" />
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
+          </button>
+          <button
             onClick={onClose}
-            className="text-gray-400 hover:text-red-400"
+            className="p-2 rounded-lg transition-colors duration-200"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              color: '#ef4444',
+            }}
           >
             <X className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="min-h-0 flex-1 overflow-y-auto scrapbook-content" data-no-drag>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-          <div className="border-b border-white/5">
-            <TabsList 
-              className="grid w-full grid-cols-2 m-0 rounded-none"
-              style={{ 
-                backgroundColor: '#0F1520',
-                borderColor: '#1A2531',
-                height: '48px'
-              }}
-            >
-              <TabsTrigger 
-                value="stickers"
-                className="data-[state=active]:text-white data-[state=active]:bg-transparent"
-                style={{ 
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#A9B7C6'
-                }}
-              >
-                🎨 Stickers ({getStickerCollectibles().length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="cards"
-                className="data-[state=active]:text-white data-[state=active]:bg-transparent"
-                style={{ 
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#A9B7C6'
-                }}
-              >
-                ♦️ Cards ({getCardCollectibles().length})
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="stickers" className="flex-1 overflow-hidden m-0">
-            {/* Search */}
-            <div className="p-3 border-b border-white/5">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search stickers..."
-                  className="pl-9 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
-                />
-              </div>
-            </div>
-
-            {/* Items */}
-            <div className="flex-1 overflow-y-auto p-4 dropsource-custom-scrollbar">
-              <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-4' : 'space-y-3'}>
-                {filteredItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="dropsource-collectible-card dropsource-clickable relative group"
-                    onMouseEnter={() => setHoveredItem(item.id)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                    style={{ 
-                      borderColor: getRarityColor(item.rarity),
-                      borderWidth: '2px',
-                      transform: hoveredItem === item.id ? 'translateY(-2px)' : 'translateY(0)',
-                      boxShadow: hoveredItem === item.id 
-                        ? `0 8px 32px ${getRarityColor(item.rarity)}40` 
-                        : undefined,
-                      transition: 'all 200ms ease-out'
-                    }}
-                  >
-                    {/* Serial Number Overlay - Show on Hover */}
-                    {hoveredItem === item.id && (
-                      <div
-                        className="dropsource-serial-overlay"
-                        style={{
-                          background: 'rgba(0, 0, 0, 0.8)',
-                          color: getRarityColor(item.rarity),
-                          padding: '4px 8px',
-                          borderRadius: 'var(--radius-sharp)',
-                          fontSize: 'var(--text-xs)',
-                          fontWeight: '600',
-                          boxShadow: `0 0 12px ${getRarityColor(item.rarity)}`,
-                          backdropFilter: 'blur(8px)',
-                          border: `1px solid ${getRarityColor(item.rarity)}`,
-                          animation: 'fadeInSmooth 200ms ease-out'
-                        }}
-                      >
-                        Serial {item.serial}
-                      </div>
-                    )}
-
-                    <div className="flex items-start gap-3 mb-3">
-                      <span className="text-2xl">{getTypeIcon(item.type)}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 
-                            className="font-medium truncate"
-                            style={{ color: '#E6ECF3' }}
-                          >
-                            {item.name}
-                          </h4>
-                        </div>
-                        
-                        <span 
-                          className="px-2 py-1 rounded text-xs font-medium border"
-                          style={{
-                            color: getRarityColor(item.rarity),
-                            borderColor: getRarityColor(item.rarity),
-                            backgroundColor: getRarityBgColor(item.rarity),
-                            display: 'inline-block',
-                            marginBottom: '8px'
-                          }}
-                        >
-                          {item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex gap-1 flex-wrap">
-                        <span
-                          className="px-2 py-1 rounded text-xs"
-                          style={{
-                            backgroundColor: 'rgba(99, 179, 255, 0.1)',
-                            color: '#63B3FF'
-                          }}
-                        >
-                          {item.type}
-                        </span>
-                      </div>
-                      
-                      <span 
-                        className="text-xs"
-                        style={{ color: '#A9B7C6' }}
-                      >
-                        {item.totalSupply} minted
-                      </span>
-                    </div>
-
-                    {/* All items in Scrapbook have Buy buttons (for trading/purchasing) */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm font-semibold" style={{ color: '#00AEEF' }}>
-                          {item.rarity === 'common' ? '$5' : 
-                           item.rarity === 'rare' ? '$10' :
-                           item.rarity === 'epic' ? '$15' : 
-                           item.rarity === 'legendary' ? '$20' : 'Trade'}
-                        </span>
-                      </div>
-                      <button
-                        className="dropsource-btn-primary"
-                        style={{ 
-                          fontSize: 'var(--text-xs)', 
-                          padding: 'calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 1)'
-                        }}
-                        onClick={() => console.log(`Buy/Trade ${item.name}`)}
-                      >
-                        Buy
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {filteredItems.length === 0 && (
-                  <div 
-                    className="p-8 text-center col-span-2"
-                    style={{ color: '#A9B7C6' }}
-                  >
-                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p>No stickers found</p>
-                    <p className="text-sm mt-1">Try adjusting your search</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="cards" className="flex-1 overflow-hidden m-0">
-            {/* Search */}
-            <div className="p-3 border-b border-white/5">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search cards..."
-                  className="pl-9 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
-                />
-              </div>
-            </div>
-
-            {/* Items */}
-            <div className="flex-1 overflow-y-auto p-4 dropsource-custom-scrollbar">
-              <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-4' : 'space-y-3'}>
-                {filteredItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="dropsource-collectible-card dropsource-clickable relative group"
-                    onMouseEnter={() => setHoveredItem(item.id)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                    style={{ 
-                      borderColor: getRarityColor(item.rarity),
-                      borderWidth: '2px',
-                      transform: hoveredItem === item.id ? 'translateY(-2px)' : 'translateY(0)',
-                      boxShadow: hoveredItem === item.id 
-                        ? `0 8px 32px ${getRarityColor(item.rarity)}40` 
-                        : undefined,
-                      transition: 'all 200ms ease-out'
-                    }}
-                  >
-                    {/* Serial Number Overlay - Show on Hover */}
-                    {hoveredItem === item.id && (
-                      <div
-                        className="dropsource-serial-overlay"
-                        style={{
-                          background: 'rgba(0, 0, 0, 0.8)',
-                          color: getRarityColor(item.rarity),
-                          padding: '4px 8px',
-                          borderRadius: 'var(--radius-sharp)',
-                          fontSize: 'var(--text-xs)',
-                          fontWeight: '600',
-                          boxShadow: `0 0 12px ${getRarityColor(item.rarity)}`,
-                          backdropFilter: 'blur(8px)',
-                          border: `1px solid ${getRarityColor(item.rarity)}`,
-                          animation: 'fadeInSmooth 200ms ease-out'
-                        }}
-                      >
-                        Serial {item.serial}
-                      </div>
-                    )}
-
-                    <div className="flex items-start gap-3 mb-3">
-                      <span className="text-2xl">{getTypeIcon(item.type)}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 
-                            className="font-medium truncate"
-                            style={{ color: '#E6ECF3' }}
-                          >
-                            {item.name}
-                          </h4>
-                        </div>
-                        
-                        <span 
-                          className="px-2 py-1 rounded text-xs font-medium border"
-                          style={{
-                            color: getRarityColor(item.rarity),
-                            borderColor: getRarityColor(item.rarity),
-                            backgroundColor: getRarityBgColor(item.rarity),
-                            display: 'inline-block',
-                            marginBottom: '8px'
-                          }}
-                        >
-                          {item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex gap-1 flex-wrap">
-                        <span
-                          className="px-2 py-1 rounded text-xs"
-                          style={{
-                            backgroundColor: 'rgba(99, 179, 255, 0.1)',
-                            color: '#63B3FF'
-                          }}
-                        >
-                          {item.type}
-                        </span>
-                      </div>
-                      
-                      <span 
-                        className="text-xs"
-                        style={{ color: '#A9B7C6' }}
-                      >
-                        {item.totalSupply} minted
-                      </span>
-                    </div>
-
-                    {/* All cards in Scrapbook also have Buy buttons (for trading) */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm font-semibold" style={{ color: '#00AEEF' }}>
-                          {item.rarity === 'epic' ? '$15' : '$20'}
-                        </span>
-                      </div>
-                      <button
-                        className="dropsource-btn-primary"
-                        style={{ 
-                          fontSize: 'var(--text-xs)', 
-                          padding: 'calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 1)'
-                        }}
-                        onClick={() => console.log(`Buy ${item.name}`)}
-                      >
-                        Buy
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {filteredItems.length === 0 && (
-                  <div 
-                    className="p-8 text-center col-span-2"
-                    style={{ color: '#A9B7C6' }}
-                  >
-                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p>No cards found</p>
-                    <p className="text-sm mt-1">Try adjusting your search</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+      {/* Filter Tabs */}
+      <div className="flex border-b" style={{ borderColor: 'rgba(167, 139, 250, 0.2)' }}>
+        {(['all', 'stickers', 'cards'] as const).map((filter) => (
+          <button
+            key={filter}
+            onClick={() => setActiveFilter(filter)}
+            className="flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 capitalize"
+            style={{
+              backgroundColor: activeFilter === filter ? 'rgba(167, 139, 250, 0.1)' : 'transparent',
+              color: activeFilter === filter ? '#A78BFA' : '#9CA3AF',
+              borderBottom: activeFilter === filter ? '2px solid #A78BFA' : '2px solid transparent',
+            }}
+          >
+            {filter}
+          </button>
+        ))}
       </div>
 
+      {/* Collection Grid */}
+      <div 
+        className="flex-1 p-4 overflow-y-auto scrapbook-content"
+        style={{ backgroundColor: '#0a0f1a' }}
+      >
+        <div className="grid grid-cols-3 gap-4">
+          {filteredCollection.filter(item => item.image || imageRegistry[item.id]).map((item) => {
+            const isHovered = hoveredItem === item.id;
+            const rarityColor = getRarityColor(item.rarity);
+            const rarityBg = getRarityBgColor(item.rarity);
+
+            return (
+              <div
+                key={item.id}
+                className="relative rounded-xl overflow-hidden transition-all duration-300"
+                style={{
+                  backgroundColor: '#1a1f2e',
+                  border: `2px solid ${rarityColor}`,
+                  transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                  boxShadow: isHovered 
+                    ? `0 15px 30px ${rarityBg}`
+                    : `0 4px 12px ${rarityBg}`,
+                }}
+                onMouseEnter={() => setHoveredItem(item.id)}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
+                {/* Fixed Container - defines panel boundaries */}
+                <div 
+                  className="relative w-full overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, ${rarityBg}, rgba(255,255,255,0.03))`,
+                  }}
+                >
+                  {/* Background Hover Effect (subtle) - behind shine */}
+                  {isHovered && (
+                    <div 
+                      className="absolute inset-0 z-10"
+                      style={{
+                        background: `radial-gradient(circle at center, ${rarityColor}22 0%, transparent 60%)`, // 22 hex = low alpha
+                        animation: 'pulse 2s infinite',
+                        pointerEvents: 'none'
+                      }}
+                    />
+                  )}
+
+                  {/* Image Container - let ImageBlock handle the square aspect ratio */}
+                  <div 
+                    className="relative z-20"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {(() => {
+                      const src = item.image || buildImagePath(item);
+
+                      if (!src) return null;
+
+                      const lowerName = item.name?.toLowerCase() || '';
+                      const isPixel = lowerName.includes('pixel');
+                      const isLuca = lowerName.includes('luca');
+
+                      return (
+                        <ImageBlock
+                          src={src}
+                          alt={item.name}
+                          pixelated={isPixel}
+                        />
+                      );
+                    })()}
+                  </div>
+
+                  {/* Shine effect - always visible for legendary items */}
+                  {(item.rarity === 'legendary') && (
+                    <div 
+                      className="absolute inset-0 opacity-40 z-30"
+                      style={{
+                        background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)',
+                        animation: 'shine 2s ease-in-out infinite',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  )}
+
+                  {/* Rarity Badge - TOP LEFT with colored border like DropSourceBook */}
+                  <div 
+                    className="absolute top-2 left-2 px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold z-40"
+                    style={{
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      border: `2px solid ${rarityColor}`,
+                      color: rarityColor,
+                      backdropFilter: 'blur(4px)',
+                      boxShadow: `0 0 8px ${rarityColor}80`
+                    }}
+                  >
+                    {getRarityIcon(item.rarity)}
+                    {getRarityLabel(item.rarity)}
+                  </div>
+
+                  {/* Serial Number - BOTTOM RIGHT with colored border - UPDATED */}
+                  <div 
+                    className="absolute bottom-2 right-2 px-2 py-1 rounded-full text-xs font-bold z-40"
+                    style={{
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      border: `2px solid ${rarityColor}`,
+                      color: rarityColor,
+                      backdropFilter: 'blur(4px)',
+                      boxShadow: `0 0 8px ${rarityColor}80`
+                    }}
+                  >
+                    {item.serial}
+                  </div>
+                </div>
+
+                {/* Item Info & Actions */}
+                <div className="p-3">
+                  <h4 className="font-bold text-sm mb-2 truncate" style={{ color: '#F5F7FF' }}>
+                    {item.name}
+                  </h4>
+                  
+                  {item.creator && (
+                    <div className="mb-2">
+                      <p className="text-xs text-gray-400">
+                        by {item.creator.displayName}
+                      </p>
+                      {item.creator.portfolio && (
+                        <a
+                          href={item.creator.portfolio}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          @{item.creator.redditUsername}
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {(item.name === 'Pixel Art' || item.name === 'Luca') && (
+                    <p className="text-xs text-gray-300 mb-2">
+                      {item.name === 'Pixel Art' 
+                        ? 'The FIRST DESIGN FOR DROP SOURCE❤️❤️❤️❤️'
+                        : 'ask me about my elmo impression'
+                      }
+                    </p>
+                  )}
+
+                  {/* Value Display */}
+                  <div className="space-y-2 mb-3">
+                    <div className="flex items-center justify-between">
+                      <span style={{ color: '#A9B7C6', fontSize: '11px', textTransform: 'capitalize' }}>
+                        {item.type}
+                      </span>
+                      <span style={{ color: '#00FF00', fontSize: '11px', fontWeight: '600' }}>
+                        ${item.rarity === 'legendary' ? 15 : item.rarity === 'epic' ? 12 : item.rarity === 'rare' ? 10 : 5}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleAuction(item)}
+                        className="px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1"
+                        style={{
+                          backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                          border: '1px solid rgba(251, 191, 36, 0.3)',
+                          color: '#fbbf24',
+                        }}
+                      >
+                        <Gavel className="w-3 h-3" />
+                        Auction
+                      </button>
+
+                      <button
+                        onClick={() => handleTrade(item)}
+                        className="px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1"
+                        style={{
+                          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          color: '#3b82f6',
+                        }}
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        Trade
+                      </button>
+                    </div>
+
+                    {(item.price || item.rarity === 'legendary') && (
+                      <a
+                        href={item.creator?.portfolio || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1 w-full cursor-pointer"
+                        style={{
+                          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                          border: '1px solid rgba(34, 197, 94, 0.3)',
+                          color: '#22c55e',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ShoppingCart className="w-3 h-3" />
+                        Buy Physical {item.price ? `$${item.price}` : 'Contact Creator'}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.25; }
+          50% { opacity: 0.5; }
+        }
+
+        @keyframes shine {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
+        @keyframes ds-shine {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(120%); }
+        }
+
+        /* apply the animation */
+        .legendary-shine {
+          animation: ds-shine 2.0s linear infinite;
+        }
+
+        /* optional: make card hover pop nicer */
+        .scrap-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 18px 40px rgba(2,6,23,0.7); }
+      `}</style>
     </div>
   );
-}
+};

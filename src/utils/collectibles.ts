@@ -2,6 +2,36 @@
 export type CollectibleType = 'sticker' | 'card';
 export type RarityType = 'common' | 'rare' | 'epic' | 'legendary';
 
+// Image registry - maps item.id to public path
+export const imageRegistry: Record<string, string> = {
+  'luca': '/stickers/rare/luca/luca.png',
+  'pixel-art': '/stickers/legendary/pixel-art/pixel-art.png',
+  // add more items here later
+};
+
+// Debug: Log all available images
+console.log('Available images in registry:', Object.keys(imageRegistry));
+console.log('Registry contents:', imageRegistry);
+
+export const buildImagePath = (item: { rarity: string; id: string }): string => {
+  // First check if we have a specific image in the registry
+  if (imageRegistry[item.id]) {
+    console.log('buildImagePath result (registry):', item.id, imageRegistry[item.id]);
+    return imageRegistry[item.id];
+  }
+  
+  // Fallback: construct path based on rarity and id
+  if (!item || !item.id) {
+    console.log('buildImagePath result (invalid item):', item, '/stickers/placeholder.png');
+    return '/stickers/placeholder.png';
+  }
+
+  const rarity = item.rarity || 'common';
+  const constructedPath = `/stickers/${rarity}/${item.id}/${item.id}.png`;
+  console.log('buildImagePath result (constructed):', item.id, constructedPath);
+  return constructedPath;
+};
+
 export interface Collectible {
   id: string;
   name: string;
@@ -10,6 +40,12 @@ export interface Collectible {
   rarity: RarityType;
   type: CollectibleType;
   price?: number; // in dollars, for purchasable items
+  image?: string; // path to image file
+  creator?: {
+    redditUsername: string;
+    displayName: string;
+    portfolio?: string;
+  };
 }
 
 export const COLLECTIBLES_POOL: Collectible[] = [
@@ -69,6 +105,20 @@ export const COLLECTIBLES_POOL: Collectible[] = [
     rarity: 'rare',
     type: 'sticker',
     price: 10
+  },
+  {
+    id: 'luca',
+    name: 'Luca',
+    serial: '#002/100',
+    totalSupply: 100,
+    rarity: 'rare',
+    type: 'sticker',
+    price: 10,
+    creator: {
+      redditUsername: 'u/im_here_now_dud3',
+      displayName: 'im_here_now_dud3',
+      portfolio: 'https://www.reddit.com/user/im_here_now_dud3/'
+    }
   },
   {
     id: 'dumpster-fire-2025',
@@ -155,6 +205,19 @@ export const COLLECTIBLES_POOL: Collectible[] = [
   },
 
   // Legendary (Cards only)
+  {
+    id: 'pixel-art',
+    name: 'Pixel Art',
+    serial: '#001/1',
+    totalSupply: 1,
+    rarity: 'legendary',
+    type: 'card',
+    creator: {
+      redditUsername: 'u/BridgetGlenn',
+      displayName: 'BridgetGlenn',
+      portfolio: 'https://www.behance.net/karriejohnson11'
+    }
+  },
   {
     id: 'chair-sniffer',
     name: 'Chair Sniffer 1/1',

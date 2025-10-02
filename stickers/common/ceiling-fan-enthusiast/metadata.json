@@ -1,0 +1,23 @@
+{
+  "id": "ceiling-fan-enthusiast",
+  "name": "Ceiling Fan Enthusiast",
+  "description": "For those who appreciate the simple things in life - like a good ceiling fan",
+  "rarity": "common",
+  "type": "sticker",
+  "totalSupply": 1000,
+  "price": 5,
+  "creator": {
+    "redditUsername": "u/example_user",
+    "displayName": "Example Creator",
+    "socialLinks": {
+      "reddit": "https://reddit.com/u/example_user",
+      "twitter": "",
+      "instagram": ""
+    }
+  },
+  "tags": ["meme", "humor", "daily-life"],
+  "submissionDate": "2025-01-XX",
+  "status": "pending",
+  "notes": "Waiting for artwork submission"
+}
+

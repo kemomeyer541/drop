@@ -7,7 +7,7 @@ import { Toaster } from './ui/sonner';
 import { toast } from 'sonner@2.0.3';
 import { 
   ArrowLeft, Palette, Layout, Sparkles, Settings, Eye, EyeOff, 
-  RotateCcw, Save, Grid3X3, Shuffle, Plus, X
+  RotateCcw, Save, Grid3X3, Shuffle, Plus, X, Trophy, Star, Zap, Crown, Target, Award, Flame, Diamond
 } from 'lucide-react';
 import { ProfileFlairProvider, useProfileFlair, type FlairType } from '../contexts/ProfileFlair';
 import { FlairBurst, type FlairBurstHandle } from './profile/FlairBurst';
@@ -19,6 +19,8 @@ import { AdvancedPanel } from './profile/AdvancedPanel';
 import ParticleLayer from './particles/ParticleLayer';
 import { Block } from '../types/profile';
 import { applyTheme, ThemeName } from '../utils/themes';
+import { DopamineEffects, HoverGlow, AttentionPulse, FloatingCollectible } from './DopamineEffects';
+import { GamificationSystem } from './GamificationSystem';
 
 interface ProfilePageProps {
   onNavigate: (page: string) => void;
@@ -79,10 +81,28 @@ function ProfileCanvasInner({ onNavigate }: ProfilePageProps) {
   const [customBackgroundImage, setCustomBackgroundImage] = useState<string | null>(null);
   const [globalTheme, setGlobalTheme] = useState('calm');
 
+  // Enhanced gamification features
+  const [showAchievement, setShowAchievement] = useState(false);
+  const [profileViews, setProfileViews] = useState(1247);
+  const [profileLikes, setProfileLikes] = useState(89);
+  const [showGamification, setShowGamification] = useState(false);
+  const [userLevel, setUserLevel] = useState(12);
+  const [userXP, setUserXP] = useState(2340);
+
   const handleSaveLayout = () => {
     // Save current blocks to localStorage
     localStorage.setItem('profile.blocks', JSON.stringify(profileBlocks));
     console.log('Layout saved!');
+    
+    // Trigger achievement for saving
+    setShowAchievement(true);
+    setUserXP(prev => prev + 50);
+    setTimeout(() => setShowAchievement(false), 3000);
+    
+    toast.success('Profile saved! +50 XP earned!', {
+      description: 'Your profile layout has been saved successfully.',
+      duration: 3000,
+    });
   };
 
   const handleResetLayout = () => {
@@ -211,6 +231,7 @@ function ProfileCanvasInner({ onNavigate }: ProfilePageProps) {
                   { id: 'blocks', label: 'Add Blocks', icon: <Layout className="w-4 h-4" /> },
                   { id: 'appearance', label: 'Appearance', icon: <Palette className="w-4 h-4" /> },
                   { id: 'particles', label: 'Particles', icon: <Sparkles className="w-4 h-4" /> },
+                  { id: 'gamification', label: 'Achievements', icon: <Trophy className="w-4 h-4" /> },
                   { id: 'advanced', label: 'Advanced', icon: <Settings className="w-4 h-4" /> }
                 ].map(section => (
                   <button
@@ -428,6 +449,94 @@ function ProfileCanvasInner({ onNavigate }: ProfilePageProps) {
                   {/* Tap Flair */}
                   <div>
                     <FlairSection />
+                  </div>
+                </div>
+              )}
+
+              {/* Gamification Section */}
+              {activeSection === 'gamification' && (
+                <div className="space-y-6">
+                  {/* Profile Stats */}
+                  <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg p-4 border border-purple-500/30">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-purple-400" />
+                      Profile Stats
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-400">{profileViews}</div>
+                        <div className="text-xs text-gray-400">Profile Views</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-400">{profileLikes}</div>
+                        <div className="text-xs text-gray-400">Profile Likes</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-yellow-400">Level {userLevel}</div>
+                        <div className="text-xs text-gray-400">Current Level</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-400">{userXP}</div>
+                        <div className="text-xs text-gray-400">Total XP</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div>
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-yellow-400" />
+                      Quick Actions
+                    </h3>
+                    <div className="space-y-2">
+                      <Button
+                        onClick={() => {
+                          setProfileViews(prev => prev + 1);
+                          toast.success('Profile viewed! +1 view');
+                        }}
+                        className="w-full dropsource-btn-secondary"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Profile (+1)
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setProfileLikes(prev => prev + 1);
+                          setUserXP(prev => prev + 10);
+                          toast.success('Profile liked! +10 XP');
+                        }}
+                        className="w-full dropsource-btn-secondary"
+                      >
+                        <Heart className="w-4 h-4 mr-2" />
+                        Like Profile (+10 XP)
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Achievements Preview */}
+                  <div>
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Award className="w-4 h-4 text-green-400" />
+                      Recent Achievements
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 p-2 bg-green-900/20 rounded border border-green-500/30">
+                        <div className="text-lg">🎨</div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-green-400">Profile Designer</div>
+                          <div className="text-xs text-gray-400">Customized your profile layout</div>
+                        </div>
+                        <div className="text-xs text-green-400">+50 XP</div>
+                      </div>
+                      <div className="flex items-center gap-3 p-2 bg-blue-900/20 rounded border border-blue-500/30">
+                        <div className="text-lg">👀</div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-blue-400">Profile Viewer</div>
+                          <div className="text-xs text-gray-400">Viewed your profile 10 times</div>
+                        </div>
+                        <div className="text-xs text-blue-400">+25 XP</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -672,7 +781,9 @@ function FlairSection() {
 export function ProfilePageEnhancedNew({ onNavigate }: ProfilePageProps) {
   return (
     <ProfileFlairProvider>
-      <ProfileCanvasInner onNavigate={onNavigate} />
+      <DopamineEffects trigger={false} type="achievement">
+        <ProfileCanvasInner onNavigate={onNavigate} />
+      </DopamineEffects>
       <Toaster />
     </ProfileFlairProvider>
   );

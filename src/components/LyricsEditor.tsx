@@ -191,29 +191,50 @@ export function LyricsEditor({
     if (onClearDrawing) onClearDrawing();
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  // Enhanced drawing event handlers for touch support
+  const getEventPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    
+    if ('touches' in e) {
+      // Touch event
+      const touch = e.touches[0];
+      return {
+        x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+        y: (touch.clientY - rect.top) * (canvas.height / rect.height)
+      };
+    } else {
+      // Mouse event
+      return {
+        x: (e.clientX - rect.left) * (canvas.width / rect.width),
+        y: (e.clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawingMode || !canvasRef.current) return;
     
+    e.preventDefault(); // Prevent scrolling on touch devices
     saveCanvasState();
     setIsDrawing(true);
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (canvasRef.current.width / rect.width);
-    const y = (e.clientY - rect.top) * (canvasRef.current.height / rect.height);
+    const { x, y } = getEventPos(e);
     setLastPos({ x, y });
     
     if (onDrawingStart) onDrawingStart();
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !canvasRef.current) return;
     
+    e.preventDefault(); // Prevent scrolling on touch devices
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+    const { x, y } = getEventPos(e);
     
     ctx.globalCompositeOperation = selectedTool === 'eraser' ? 'destination-out' : 'source-over';
     ctx.strokeStyle = selectedTool === 'eraser' ? 'rgba(0,0,0,1)' : selectedColor;
@@ -342,12 +363,15 @@ export function LyricsEditor({
       {/* Drawing canvas */}
       <canvas 
         ref={canvasRef}
-        className={`absolute inset-0 z-30 ${isDrawingMode ? 'cursor-crosshair pointer-events-auto' : 'pointer-events-none'}`}
+        className={`absolute inset-0 z-30 ${isDrawingMode ? 'cursor-crosshair pointer-events-auto touch-none' : 'pointer-events-none'}`}
         onMouseDown={startDrawing}
         onMouseMove={draw}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
-        style={{ width: '100%', height: '100%' }}
+        onTouchStart={startDrawing}
+        onTouchMove={draw}
+        onTouchEnd={stopDrawing}
+        style={{ width: '100%', height: '100%', touchAction: 'none' }}
       />
     </div>
   );

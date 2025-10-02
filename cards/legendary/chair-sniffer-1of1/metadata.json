@@ -1,0 +1,24 @@
+{
+  "id": "chair-sniffer-1of1",
+  "name": "Chair Sniffer 1/1",
+  "description": "The legendary one-of-a-kind card that started it all",
+  "rarity": "legendary",
+  "type": "card",
+  "totalSupply": 1,
+  "price": null,
+  "creator": {
+    "redditUsername": "u/example_user",
+    "displayName": "Example Creator",
+    "socialLinks": {
+      "reddit": "https://reddit.com/u/example_user",
+      "twitter": "",
+      "instagram": ""
+    }
+  },
+  "tags": ["legendary", "unique", "meme"],
+  "submissionDate": "2025-01-XX",
+  "status": "pending",
+  "notes": "Ultra-rare 1/1 card, needs premium artwork"
+}
+
+

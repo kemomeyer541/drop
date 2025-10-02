@@ -25,6 +25,18 @@ interface BookItem {
 
 const bookItems: BookItem[] = [
   {
+    id: 'pixel-art',
+    name: 'Pixel Art',
+    emoji: '🎨',
+    creator: 'BridgetGlenn',
+    rarities: ['legendary'],
+    minted: 1,
+    physicalPrice: 10000000,
+    type: 'card',
+    serialNumber: 1,
+    dateMinted: '2025-10-01'
+  },
+  {
     id: '1',
     name: 'Fire Track',
     emoji: '🔥',
@@ -144,6 +156,48 @@ const getRarityBadgeColors = (rarity: string) => {
 };
 
 export function DropSourceBookPage({ onNavigate }: DropSourceBookPageProps) {
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<BookItem | null>(null);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [purchaseAnimation, setPurchaseAnimation] = useState(false);
+  const [userCollection, setUserCollection] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filterRarity, setFilterRarity] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'rarity' | 'price' | 'minted'>('name');
+
+  const handlePurchasePhysical = (item: BookItem) => {
+    setSelectedItem(item);
+    setShowPurchaseModal(true);
+  };
+
+  const confirmPurchase = () => {
+    if (selectedItem) {
+      setPurchaseAnimation(true);
+      setUserCollection(prev => [...prev, selectedItem.id]);
+      
+      // Show success animation
+      setTimeout(() => {
+        setPurchaseAnimation(false);
+        setShowPurchaseModal(false);
+        setSelectedItem(null);
+        
+        // Show success notification
+        alert(`🎉 Successfully purchased ${selectedItem.name}! Check your scrapbook.`);
+      }, 2000);
+    }
+  };
+
+  const filteredAndSortedItems = bookItems
+    .filter(item => filterRarity === 'all' || item.rarities.includes(filterRarity))
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name': return a.name.localeCompare(b.name);
+        case 'rarity': return a.rarities[0].localeCompare(b.rarities[0]);
+        case 'price': return a.physicalPrice - b.physicalPrice;
+        case 'minted': return b.minted - a.minted;
+        default: return 0;
+      }
+    });
 
   return (
     <TooltipProvider>
@@ -201,19 +255,81 @@ export function DropSourceBookPage({ onNavigate }: DropSourceBookPageProps) {
         {/* Main Content */}
         <div className="p-6 h-full overflow-y-auto dropsource-custom-scrollbar">
           <div className="max-w-6xl mx-auto">
-            <div className="mb-6">
-              <p className="dropsource-text-secondary text-center">
+            {/* Enhanced Header with Stats */}
+            <div className="mb-6 text-center">
+              <p className="dropsource-text-secondary mb-4">
                 Collectible stickers and cards from the Drop Source universe
               </p>
+              
+              {/* Collection Stats */}
+              <div className="flex justify-center gap-6 mb-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">{userCollection.length}</div>
+                  <div className="text-sm text-gray-400">Owned</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">{bookItems.length}</div>
+                  <div className="text-sm text-gray-400">Total Items</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">
+                    {Math.round((userCollection.length / bookItems.length) * 100)}%
+                  </div>
+                  <div className="text-sm text-gray-400">Collection</div>
+                </div>
+              </div>
+
+              {/* Filters and Controls */}
+              <div className="flex flex-wrap justify-center gap-4 mb-6">
+                <div className="flex gap-2">
+                  {['all', 'common', 'rare', 'epic', 'legendary'].map((rarity) => (
+                    <button
+                      key={rarity}
+                      onClick={() => setFilterRarity(rarity)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                        filterRarity === rarity
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex gap-2">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    className="px-3 py-1 rounded-full bg-gray-700 text-gray-300 text-sm"
+                  >
+                    <option value="name">Sort by Name</option>
+                    <option value="rarity">Sort by Rarity</option>
+                    <option value="price">Sort by Price</option>
+                    <option value="minted">Sort by Minted</option>
+                  </select>
+                  
+                  <button
+                    onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                    className="px-3 py-1 rounded-full bg-gray-700 text-gray-300 text-sm hover:bg-gray-600"
+                  >
+                    {viewMode === 'grid' ? '📋 List' : '🔲 Grid'}
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Grid of Items */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {bookItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="relative"
-                >
+            <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' : 'space-y-4'}>
+              {filteredAndSortedItems.map((item) => {
+                const isOwned = userCollection.includes(item.id);
+                const isHovered = hoveredItem === item.id;
+                
+                return (
+                  <div
+                    key={item.id}
+                    className="relative"
+                  >
                   <Card 
                     className={`dropsource-card p-6 text-center dropsource-clickable transition-all group relative ${
                       item.type === 'card' ? 'border-2 border-dashed' : ''
@@ -309,26 +425,71 @@ export function DropSourceBookPage({ onNavigate }: DropSourceBookPageProps) {
                           </span>
                         </div>
                         
-                        {/* Catalog Only - No "Worth" or "Purchase Physical" on cards, Stickers can show "Purchase Physical ($)" button, Cards = informational only unless user owns it */}
+                        {/* Enhanced Purchase Section */}
                         {item.type === 'sticker' && (
                           <div className="pt-2 border-t border-gray-700">
-                            <Button 
-                              className="w-full dropsource-btn-primary text-xs flex items-center gap-2"
-                              onClick={() => console.log(`Buy physical ${item.name}`)}
-                            >
-                              <ShoppingCart className="w-3 h-3" />
-                              Purchase Physical (${item.physicalPrice})
-                            </Button>
+                            {isOwned ? (
+                              <div className="w-full px-4 py-2 bg-green-500/20 text-green-400 text-xs font-medium text-center rounded">
+                                ✅ Owned
+                              </div>
+                            ) : (
+                              <Button 
+                                className="w-full dropsource-btn-primary text-xs flex items-center gap-2 hover:scale-105 transition-transform"
+                                onClick={() => handlePurchasePhysical(item)}
+                              >
+                                <ShoppingCart className="w-3 h-3" />
+                                Purchase Physical (${item.physicalPrice})
+                              </Button>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
                   </Card>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
+
+        {/* Purchase Confirmation Modal */}
+        {showPurchaseModal && selectedItem && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-gray-900 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
+              <div className="text-center">
+                <div className="text-6xl mb-4">{selectedItem.emoji}</div>
+                <h3 className="text-xl font-bold mb-2">{selectedItem.name}</h3>
+                <p className="text-gray-400 mb-4">{selectedItem.description}</p>
+                
+                <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                  <div className="text-2xl font-bold text-green-400 mb-2">${selectedItem.physicalPrice}</div>
+                  <div className="text-sm text-gray-400">Physical {selectedItem.type}</div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setShowPurchaseModal(false)}
+                    className="flex-1 bg-gray-700 hover:bg-gray-600"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={confirmPurchase}
+                    className={`flex-1 ${purchaseAnimation ? 'animate-pulse' : ''}`}
+                    style={{
+                      background: purchaseAnimation 
+                        ? 'linear-gradient(45deg, #10b981, #059669)' 
+                        : undefined
+                    }}
+                  >
+                    {purchaseAnimation ? 'Processing...' : 'Confirm Purchase'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );

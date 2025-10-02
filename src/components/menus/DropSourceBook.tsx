@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { X, Search, Filter, Star, Sparkles, ShoppingCart } from 'lucide-react';
+import { getCardCollectibles, getRarityColor, getRarityBgColor } from '../../utils/collectibles';
 
 export type StickerRarity = 'common' | 'rare' | 'legendary';
 export type CardRarity = 'premium' | 'elite';
@@ -24,6 +25,12 @@ export interface CardItem {
   price: number;
   description?: string;
   isDropSourceMinted?: boolean;
+  image?: string;
+  creatorInfo?: {
+    redditUsername: string;
+    displayName: string;
+    portfolio?: string;
+  };
 }
 
 // Global registry - all items referenced across the app (expanded for infinite scroll feel)
@@ -50,22 +57,17 @@ export const STICKER_REGISTRY: StickerItem[] = [
   { id: 's10', name: 'Error 404 Vibes', creator: 'DebugDeer', rarity: 'rare', color: '#FF4444', price: 16, description: 'Page not found energy' },
 ];
 
-export const CARD_REGISTRY: CardItem[] = [
-  // DropSource Official  
-  { id: 'dsc1', name: 'CEO of Vibes', creator: 'DropSource', rarity: 'elite', color: '#FFD700', price: 85, description: 'Executive mood management', isDropSourceMinted: true },
-  { id: 'dsc2', name: 'Master of Disaster', creator: 'DropSource', rarity: 'premium', color: '#60A5FA', price: 45, description: 'Chaos coordinator', isDropSourceMinted: true },
-  { id: 'dsc3', name: 'Meme Lord Supreme', creator: 'DropSource', rarity: 'elite', color: '#A78BFA', price: 95, description: 'Peak internet culture', isDropSourceMinted: true },
-  { id: 'dsc4', name: 'Professional Overthinker', creator: 'DropSource', rarity: 'premium', color: '#F87171', price: 42, description: 'Anxiety level: Expert', isDropSourceMinted: true },
-  // Community Created
-  { id: 'c1', name: 'Golden Producer', creator: 'SynthMaster', rarity: 'elite', color: '#FFD700', price: 100, description: 'Master of all genres' },
-  { id: 'c2', name: 'Beat Master', creator: 'BeatBuddy', rarity: 'premium', color: '#60A5FA', price: 40, description: 'Rhythm perfection' },
-  { id: 'c3', name: 'Synth Lord', creator: 'EchoKnox', rarity: 'elite', color: '#A78BFA', price: 120, description: 'Electronic music deity' },
-  { id: 'c4', name: 'Mix Legend', creator: 'AudioArk', rarity: 'premium', color: '#F87171', price: 35, description: 'Mixing board wizard' },
-  { id: 'c5', name: 'Drop King', creator: 'LoopLord', rarity: 'elite', color: '#34D399', price: 85, description: 'Bass drop royalty' },
-  { id: 'c6', name: 'Sound Sage', creator: 'DesignDragon', rarity: 'premium', color: '#FBBF24', price: 45, description: 'Audio wisdom keeper' },
-  { id: 'c7', name: 'Harmony Keeper', creator: 'MelodyMoon', rarity: 'premium', color: '#EC4899', price: 38, description: 'Musical balance master' },
-  { id: 'c8', name: 'Rhythm Wizard', creator: 'TempoTiger', rarity: 'elite', color: '#10B981', price: 92, description: 'Time signature sorcerer' },
-];
+export const CARD_REGISTRY: CardItem[] = getCardCollectibles().map(card => ({
+  id: card.id,
+  name: card.name,
+  creator: card.creator?.displayName || 'Unknown',
+  rarity: card.rarity === 'legendary' ? 'elite' : 'premium',
+  color: getRarityColor(card.rarity),
+  price: card.price || 0,
+  description: card.name,
+  image: card.image,
+  creatorInfo: card.creator
+}));
 
 const getRarityColor = (rarity: StickerRarity | CardRarity): string => {
   switch (rarity) {
@@ -134,21 +136,31 @@ export const DropSourceBook: React.FC<DropSourceBookProps> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}>
       <div 
-        className="rounded-lg shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden"
+        className="rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden"
         style={{
           backgroundColor: '#0F1520',
-          border: '1px solid #1A2531',
+          border: '1px solid rgba(167, 139, 250, 0.3)',
+          boxShadow: '0 0 40px rgba(167, 139, 250, 0.2)',
           animation: 'fadeInSmooth 300ms ease-out'
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: '#1A2531' }}>
+        <div 
+          className="flex items-center justify-between p-6 border-b" 
+          style={{ 
+            borderColor: 'rgba(167, 139, 250, 0.2)',
+            background: 'linear-gradient(135deg, #1a1f2e 0%, #0a0f1a 100%)'
+          }}
+        >
           <div className="flex items-center gap-3">
-            <h2 style={{ 
-              color: '#63B3FF', 
-              fontSize: '24px', 
-              fontWeight: '600',
-              textShadow: '0 0 12px rgba(99, 179, 255, 0.4)'
+            <span className="text-2xl">📚</span>
+            <h2 className="text-xl font-bold" style={{ 
+              background: 'linear-gradient(90deg, #A78BFA, #FF6BAA)',
+              backgroundImage: 'linear-gradient(90deg, #A78BFA, #FF6BAA)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              color: 'transparent'
             }}>
               Drop Source Book
             </h2>
@@ -174,7 +186,7 @@ export const DropSourceBook: React.FC<DropSourceBookProps> = ({ onClose }) => {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: '#1A2531' }}>
+        <div className="flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: 'rgba(167, 139, 250, 0.2)' }}>
           <button
             onClick={() => setActiveTab('stickers')}
             className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -200,7 +212,7 @@ export const DropSourceBook: React.FC<DropSourceBookProps> = ({ onClose }) => {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-4 p-4 border-b" style={{ borderColor: '#1A2531' }}>
+        <div className="flex items-center gap-4 p-4 border-b" style={{ borderColor: 'rgba(167, 139, 250, 0.2)' }}>
           <div className="flex items-center gap-2 flex-1">
             <Search className="w-4 h-4" style={{ color: '#A9B7C6' }} />
             <input
@@ -255,8 +267,8 @@ export const DropSourceBook: React.FC<DropSourceBookProps> = ({ onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto flex-1" style={{ maxHeight: 'calc(95vh - 300px)' }} onScroll={handleScroll}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="p-4 overflow-y-auto flex-1" style={{ maxHeight: 'calc(95vh - 300px)', backgroundColor: '#0a0f1a' }} onScroll={handleScroll}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {activeTab === 'stickers' ? filteredStickers.map(sticker => (
               <div
                 key={sticker.id}
@@ -352,87 +364,139 @@ export const DropSourceBook: React.FC<DropSourceBookProps> = ({ onClose }) => {
                   Purchase Physical ${sticker.rarity === 'legendary' ? 40 : sticker.rarity === 'rare' ? 25 : 20}
                 </button>
               </div>
-            )) : filteredCards.map(card => (
-              <div
-                key={card.id}
-                className="rounded-lg border-2 p-4 transition-all duration-300 group cursor-pointer relative"
-                style={{
-                  backgroundColor: '#121721',
-                  borderColor: getRarityColor(card.rarity),
-                  boxShadow: `0 4px 16px rgba(0,0,0,0.4), 0 0 8px ${getRarityColor(card.rarity)}40`,
-                  minHeight: '320px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = `0 8px 32px rgba(0,0,0,0.6), 0 0 16px ${getRarityColor(card.rarity)}70`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = `0 4px 16px rgba(0,0,0,0.4), 0 0 8px ${getRarityColor(card.rarity)}40`;
-                }}
-              >
-                {/* Rarity Badge - Top Right */}
-                <div 
-                  className="absolute -top-2 -right-2 px-3 py-1 rounded text-xs font-bold z-10"
+            )) : filteredCards.map(card => {
+              const rarityColor = getRarityColor(card.rarity);
+              const rarityBg = getRarityBgColor(card.rarity);
+              
+              return (
+                <div
+                  key={card.id}
+                  className="relative rounded-xl overflow-hidden transition-all duration-300"
                   style={{
-                    backgroundColor: getRarityColor(card.rarity),
-                    color: card.rarity === 'common' ? '#000' : '#fff',
-                    boxShadow: `0 0 12px ${getRarityColor(card.rarity)}80`,
-                    textTransform: 'uppercase'
+                    backgroundColor: '#1a1f2e',
+                    border: `2px solid ${rarityColor}`,
+                    transform: 'scale(1)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = `0 15px 30px ${rarityBg}`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
                   }}
                 >
-                  {card.rarity}
-                </div>
+                  {/* Item Preview */}
+                  <div 
+                    className="relative h-32 flex items-center justify-center"
+                    style={{
+                      background: `linear-gradient(135deg, ${rarityBg}, rgba(255,255,255,0.05))`,
+                    }}
+                  >
+                    {card.image ? (
+                      <img 
+                        src={card.image} 
+                        alt={card.name}
+                        className="absolute inset-0 w-full h-full object-contain z-10"
+                        style={{ 
+                          filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.4))',
+                          imageRendering: 'crisp-edges'
+                        }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-6xl z-10">🃏</div>
+                    )}
 
-                {/* Card Preview */}
-                <div 
-                  className="w-full h-28 rounded-lg mb-4 flex items-center justify-center"
-                  style={{ backgroundColor: card.color, opacity: 0.9 }}
-                >
-                  <span className="text-white font-bold text-3xl">♦</span>
-                </div>
-                
-                {/* Info */}
-                <div className="space-y-3 mb-4">
-                  <div>
-                    <h4 style={{ color: '#E6ECF3', fontSize: '15px', fontWeight: '600' }}>
+                    {/* Rarity Badge */}
+                    <div 
+                      className="absolute top-2 left-2 px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold z-30"
+                      style={{
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        border: `2px solid ${rarityColor}`,
+                        color: rarityColor,
+                        backdropFilter: 'blur(4px)',
+                        boxShadow: `0 0 8px ${rarityColor}80`
+                      }}
+                    >
+                      {getRarityIcon(card.rarity)}
+                      {card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1)}
+                    </div>
+
+                    {/* Shine effect for rare items */}
+                    {(card.rarity === 'elite') && (
+                      <div 
+                        className="absolute inset-0 opacity-40 z-30"
+                        style={{
+                          background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)',
+                          animation: 'shine 3s infinite',
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Item Info & Actions */}
+                  <div className="p-3">
+                    <h4 className="font-bold text-sm mb-2 truncate" style={{ color: '#F5F7FF' }}>
                       {card.name}
                     </h4>
-                    <p style={{ 
-                      color: card.isDropSourceMinted ? '#63B3FF' : '#A9B7C6', 
-                      fontSize: '12px',
-                      textShadow: card.isDropSourceMinted ? '0 0 8px rgba(99, 179, 255, 0.4)' : 'none'
-                    }}>
-                      by {card.creator}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span style={{ color: '#A9B7C6', fontSize: '12px', textTransform: 'capitalize' }}>
-                      {card.rarity}
-                    </span>
-                    <span style={{ color: '#FFD700', fontSize: '12px', fontWeight: '600' }}>
-                      Value: ⭐{card.rarity === 'elite' ? 25 : 10}
-                    </span>
-                  </div>
-                  
-                  {card.description && (
-                    <p style={{ color: '#A9B7C6', fontSize: '11px', lineHeight: '1.4' }}>
-                      {card.description}
-                    </p>
-                  )}
-                </div>
+                    
+                    {card.creatorInfo && (
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-400">
+                          by {card.creatorInfo.displayName}
+                        </p>
+                        {card.creatorInfo.portfolio && (
+                          <a 
+                            href={card.creatorInfo.portfolio}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            @{card.creatorInfo.redditUsername}
+                          </a>
+                        )}
+                      </div>
+                    )}
 
-                {/* Informational Only - Cards Cannot Be Purchased */}
-                <div className="w-full px-3 py-2 rounded text-sm text-center" 
-                     style={{ 
-                       backgroundColor: 'rgba(96, 165, 250, 0.1)', 
-                       color: '#60A5FA',
-                       border: '1px solid rgba(96, 165, 250, 0.3)'
-                     }}>
-                  ℹ️ Cards available in Scrapbook only
+                    {/* Description */}
+                    {card.name === 'Pixel Art' && (
+                      <p className="text-xs text-gray-300 mb-2">
+                        The FIRST DESIGN FOR DROP SOURCE❤️❤️❤️❤️
+                      </p>
+                    )}
+
+                    <div className="space-y-2 mb-3">
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: '#A9B7C6', fontSize: '12px', textTransform: 'capitalize' }}>
+                          {card.rarity}
+                        </span>
+                        <span style={{ color: '#FFD700', fontSize: '12px', fontWeight: '600' }}>
+                          Value: ⭐{card.rarity === 'elite' ? 25 : 10}
+                        </span>
+                      </div>
+                      
+                      {card.description && (
+                        <p style={{ color: '#A9B7C6', fontSize: '11px', lineHeight: '1.4' }}>
+                          {card.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Informational Only - Cards Cannot Be Purchased */}
+                    <div className="w-full px-3 py-2 rounded text-sm text-center" 
+                         style={{ 
+                           backgroundColor: 'rgba(96, 165, 250, 0.1)', 
+                           color: '#60A5FA',
+                           border: '1px solid rgba(96, 165, 250, 0.3)'
+                         }}>
+                      ℹ️ Cards available in Scrapbook only
+                    </div>
+                  </div>
                 </div>
-              </div>
+              );
+            }
             ))}
           </div>
 
@@ -446,6 +510,13 @@ export const DropSourceBook: React.FC<DropSourceBookProps> = ({ onClose }) => {
           )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes shine {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,0 +1,23 @@
+{
+  "id": "bonk-horny-jail",
+  "name": "Bonk! Horny Jail",
+  "description": "The classic internet meme for when someone needs to be sent to horny jail",
+  "rarity": "rare",
+  "type": "sticker",
+  "totalSupply": 250,
+  "price": 10,
+  "creator": {
+    "redditUsername": "u/example_user",
+    "displayName": "Example Creator",
+    "socialLinks": {
+      "reddit": "https://reddit.com/u/example_user",
+      "twitter": "",
+      "instagram": ""
+    }
+  },
+  "tags": ["meme", "humor", "internet-culture"],
+  "submissionDate": "2025-01-XX",
+  "status": "pending",
+  "notes": "Classic meme, needs distinctive art style"
+}
+

@@ -7,7 +7,8 @@ import { ScrollArea } from './ui/scroll-area';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { 
   MessageCircle, Users, ShoppingCart, UserPlus, Backpack, 
-  Trophy, User, ArrowUp, ArrowDown, Star, Send, Megaphone, Home, FileText, Sparkles
+  Trophy, User, ArrowUp, ArrowDown, Star, Send, Megaphone, Home, FileText, Sparkles,
+  Heart, Zap, Crown, Target, TrendingUp, Award, Flame, Diamond
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { SparkleLayer } from './SparkleLayer';
@@ -15,6 +16,7 @@ import { StarfieldBackground } from './StarfieldBackground';
 import { ShootingStars } from './ShootingStars';
 import { CardSparkEffect } from './CardSparkEffect';
 import { RollingStats } from './RollingStats';
+import { DopamineEffects, HoverGlow, AttentionPulse } from './DopamineEffects';
 
 interface CommunityHubProps {
   onNavigate: (page: string) => void;
@@ -103,12 +105,48 @@ export function CommunityHub({ onNavigate, onOpenFeature }: CommunityHubProps) {
   const [hoveredPortal, setHoveredPortal] = useState<string | null>(null);
   const [chatUnreadCount, setChatUnreadCount] = useState(3);
   const [showChatPulse, setShowChatPulse] = useState(true);
+  
+  // Enhanced dopamine features
+  const [showLikeAnimation, setShowLikeAnimation] = useState<number | null>(null);
+  const [userStreak, setUserStreak] = useState(7);
+  const [dailyReward, setDailyReward] = useState(false);
+  const [trendingPosts, setTrendingPosts] = useState([1, 3]); // Post IDs that are trending
+  const [showAchievement, setShowAchievement] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<string[]>([]);
 
   const handleVote = (postId: number, direction: 'up' | 'down') => {
     setPostVotes(prev => ({
       ...prev,
       [postId]: (prev[postId] || 0) + (direction === 'up' ? 1 : -1)
     }));
+    
+    // Trigger dopamine effect for upvotes
+    if (direction === 'up') {
+      setShowLikeAnimation(postId);
+      setTimeout(() => setShowLikeAnimation(null), 1000);
+      
+      // Add to recent activity
+      setRecentActivity(prev => [
+        `👍 You upvoted "${mockPosts.find(p => p.id === postId)?.title}"`,
+        ...prev.slice(0, 4)
+      ]);
+    }
+  };
+
+  const claimDailyReward = () => {
+    setDailyReward(true);
+    setUserStreak(prev => prev + 1);
+    setShowAchievement(true);
+    
+    // Add to recent activity
+    setRecentActivity(prev => [
+      `🎁 Daily reward claimed! ${userStreak + 1} day streak!`,
+      ...prev.slice(0, 4)
+    ]);
+    
+    setTimeout(() => {
+      setShowAchievement(false);
+    }, 3000);
   };
 
   const handleChatLaunch = () => {
@@ -118,36 +156,15 @@ export function CommunityHub({ onNavigate, onOpenFeature }: CommunityHubProps) {
   };
 
   return (
-    <div 
-      className="h-full overflow-hidden flex flex-col relative"
-      style={{ 
-        background: 'linear-gradient(180deg, #0D0D0D 0%, #121212 100%)',
-        color: 'white',
-        position: 'relative'
-      }}
-    >
-      {/* Megaphone Ticker Bar - Always visible at top */}
-      <div className="sticky top-0 z-50 overflow-hidden" style={{
-        background: 'linear-gradient(90deg, #FFB039 0%, #FF8C42 100%)',
-        height: '36px',
-        borderBottom: '1px solid rgba(255, 176, 57, 0.3)'
-      }}>
-        <div 
-          className="flex items-center h-full"
-          style={{
-            animation: 'scroll-left 25s linear infinite',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          <div className="flex items-center gap-12 px-4">
-            {announcements.map((announcement, index) => (
-              <span key={index} className="text-black font-medium text-sm">
-                {announcement}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+    <DopamineEffects>
+      <div 
+        className="h-full overflow-hidden flex flex-col relative"
+        style={{ 
+          background: 'linear-gradient(180deg, #0D0D0D 0%, #121212 100%)',
+          color: 'white',
+          position: 'relative'
+        }}
+      >
 
       {/* Starfield Background */}
       <StarfieldBackground />
@@ -198,6 +215,27 @@ export function CommunityHub({ onNavigate, onOpenFeature }: CommunityHubProps) {
           {/* Rolling Stats Component */}
           <RollingStats />
         </div>
+
+
+        {/* Recent Activity Feed */}
+        {recentActivity.length > 0 && (
+          <div className="mb-6 w-full max-w-4xl">
+            <Card className="bg-gray-900/50 border-gray-700 p-4">
+              <h3 className="font-bold mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-blue-400" />
+                Your Recent Activity
+              </h3>
+              <div className="space-y-2">
+                {recentActivity.map((activity, index) => (
+                  <div key={index} className="text-sm text-gray-300 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                    {activity}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
         
         {/* Hero Grid - Exactly 5 Cards - Locked Center/Top Constraints for 1440×900 */}
         <div className="flex gap-10" style={{ 
@@ -561,5 +599,6 @@ export function CommunityHub({ onNavigate, onOpenFeature }: CommunityHubProps) {
 
       {/* REMOVED: Chat Launcher Button - No longer showing on home screen */}
     </div>
+    </DopamineEffects>
   );
 }

@@ -212,7 +212,7 @@ export function StarfieldBackground({ className }: StarfieldBackgroundProps) {
     // Initialize
     resizeCanvas();
     isAnimatingRef.current = true;
-    console.log('Starting starfield animation with', stars.length, 'stars');
+    // console.log('Starting starfield animation with', stars.length, 'stars');
     animationRef.current = requestAnimationFrame(animate);
     
     window.addEventListener('resize', handleResize);
