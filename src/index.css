@@ -5123,6 +5123,7 @@ html {
   }
 }
 
+
 @keyframes spark-fall {
   0% {
     opacity: 1;
@@ -5188,11 +5189,122 @@ html {
   animation-delay: var(--emoji-delay, 0s);
 }
 
+.dropsource-logo-enhanced {
+  position: relative;
+  animation: none;
+  background: linear-gradient(90deg, #9fc5e8 0%, #7fa4cf 25%, #6b8dd6 50%, #5a7bc8 75%, #4a6fa5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dropsource-logo-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #c084fc 0%, #a855f7 25%, #9333ea 50%, #7c3aed 75%, #6d28d9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: purple-sheen-wave 60s infinite;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
 .dropsource-logo-enhanced:hover {
   animation: logo-glow 2s ease-in-out;
   transform: scale(1.02);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
 }
+
+@keyframes purple-sheen-wave {
+  /* Blue phase - 27 seconds */
+  0%, 45% {
+    left: -100%;
+    opacity: 0;
+  }
+  
+  /* Purple sheen sweeps across - 3 seconds */
+  45.5% {
+    left: -100%;
+    opacity: 0.8;
+  }
+  
+  47.5% {
+    left: 100%;
+    opacity: 0.8;
+  }
+  
+  /* Purple phase - 28 seconds */
+  48%, 95% {
+    left: 100%;
+    opacity: 0.8;
+  }
+  
+  /* Blue sheen sweeps back - 3 seconds */
+  95.5% {
+    left: 100%;
+    opacity: 0.8;
+  }
+  
+  97.5% {
+    left: -100%;
+    opacity: 0.8;
+  }
+  
+  /* Back to blue */
+  98%, 100% {
+    left: -100%;
+    opacity: 0;
+  }
+}
+
+@keyframes purple-wave {
+  /* Blue phase - 2 minutes */
+  0%, 45% {
+    left: -100%;
+    opacity: 0;
+  }
+  
+  /* Purple wave sweeps across - 3 seconds */
+  45.5% {
+    left: -100%;
+    opacity: 1;
+  }
+  
+  47.5% {
+    left: 100%;
+    opacity: 1;
+  }
+  
+  /* Purple phase - 2 minutes */
+  48%, 95% {
+    left: 0%;
+    opacity: 1;
+  }
+  
+  /* Blue wave returns - 3 seconds */
+  95.5% {
+    left: 0%;
+    opacity: 1;
+  }
+  
+  97.5% {
+    left: 100%;
+    opacity: 0;
+  }
+  
+  /* Back to blue */
+  98%, 100% {
+    left: -100%;
+    opacity: 0;
+  }
+}
+
 
 .dropsource-toolbar {
   background-color: var(--card-bg-darker);

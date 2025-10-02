@@ -64,12 +64,6 @@ export default function TopNav({ currentPage, onNavigate, onOpenFeature }: TopNa
           <div 
             className="cursor-pointer flex"
             onClick={() => onNavigate('community')}
-            style={{ 
-              background: 'linear-gradient(90deg, #00AEEF 0%, #8F63FF 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}
           >
             <motion.span 
               key={`drop-${animationKey}`}
@@ -81,6 +75,13 @@ export default function TopNav({ currentPage, onNavigate, onOpenFeature }: TopNa
                 stiffness: 200, 
                 damping: 15,
                 delay: 0.1
+              }}
+              style={{ 
+                background: 'linear-gradient(90deg, #9fc5e8 0%, #7fa4cf 25%, #6b8dd6 50%, #5a7bc8 75%, #4a6fa5 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: 'transparent'
               }}
             >
               Drop
@@ -95,6 +96,13 @@ export default function TopNav({ currentPage, onNavigate, onOpenFeature }: TopNa
                 stiffness: 200, 
                 damping: 15,
                 delay: 0.4
+              }}
+              style={{ 
+                background: 'linear-gradient(90deg, #9fc5e8 0%, #7fa4cf 25%, #6b8dd6 50%, #5a7bc8 75%, #4a6fa5 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: 'transparent'
               }}
             >
               Source

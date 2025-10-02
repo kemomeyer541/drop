@@ -194,18 +194,8 @@ export function CommunityHub({ onNavigate, onOpenFeature }: CommunityHubProps) {
         {/* Brand Name - Center Top */}
         <div className="text-center" style={{ marginTop: '0px', marginBottom: '8px' }}>
           <div 
-            className="dropsource-logo-enhanced"
+            className="dropsource-logo-container"
             style={{ 
-              fontSize: '54px', 
-              fontWeight: '900',
-              fontFamily: 'Inter',
-              background: 'linear-gradient(90deg, #B8E6F0 0%, #98C1F5 20%, #7DA8F7 40%, #B19CD9 60%, #C8A2C8 80%, #DDA0DD 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              letterSpacing: '-0.03em',
-              textShadow: '0 0 30px rgba(184, 230, 240, 0.4), 0 0 60px rgba(177, 156, 217, 0.3)',
-              filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.15))',
               margin: 0,
               position: 'relative',
               display: 'flex',
@@ -214,25 +204,59 @@ export function CommunityHub({ onNavigate, onOpenFeature }: CommunityHubProps) {
             }}
           >
             <motion.span
-              initial={{ y: -200, opacity: 0, rotateX: -90, scale: 0.6 }}
-              animate={{ y: 0, opacity: 1, rotateX: 0, scale: 1 }}
+              key="drop-logo"
+              className="dropsource-logo-enhanced"
+              initial={{ y: -200, opacity: 0, scale: 0.6, rotateX: -90 }}
+              animate={{ y: 0, opacity: 1, scale: 1, rotateX: 0 }}
               transition={{
                 type: "spring",
                 stiffness: 100,
                 damping: 15,
                 delay: 0.5
               }}
+              style={{
+                fontSize: '54px',
+                fontWeight: '900',
+                fontFamily: 'Inter',
+                background: 'linear-gradient(90deg, #9fc5e8 0%, #7fa4cf 25%, #6b8dd6 50%, #5a7bc8 75%, #4a6fa5 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.03em',
+                textShadow: '0 0 30px rgba(184, 230, 240, 0.4), 0 0 60px rgba(177, 156, 217, 0.3)',
+                filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.15))',
+                margin: 0,
+                display: 'inline-block',
+                transformOrigin: 'center bottom'
+              }}
             >
               Drop
             </motion.span>
             <motion.span
-              initial={{ y: -200, opacity: 0, rotateX: -90, scale: 0.6 }}
-              animate={{ y: 0, opacity: 1, rotateX: 0, scale: 1 }}
+              key="source-logo"
+              className="dropsource-logo-enhanced"
+              initial={{ y: -200, opacity: 0, scale: 0.6, rotateX: -90 }}
+              animate={{ y: 0, opacity: 1, scale: 1, rotateX: 0 }}
               transition={{
                 type: "spring",
                 stiffness: 100,
                 damping: 15,
                 delay: 1.0
+              }}
+              style={{
+                fontSize: '54px',
+                fontWeight: '900',
+                fontFamily: 'Inter',
+                background: 'linear-gradient(90deg, #9fc5e8 0%, #7fa4cf 25%, #6b8dd6 50%, #5a7bc8 75%, #4a6fa5 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.03em',
+                textShadow: '0 0 30px rgba(184, 230, 240, 0.4), 0 0 60px rgba(177, 156, 217, 0.3)',
+                filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.15))',
+                margin: 0,
+                display: 'inline-block',
+                transformOrigin: 'center bottom'
               }}
             >
               Source
