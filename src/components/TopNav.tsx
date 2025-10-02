@@ -1,5 +1,6 @@
 // src/components/TopNav.tsx
 import React from 'react';
+import { motion } from 'motion/react';
 import { useChat } from '../contexts/ChatContext';
 import { Bell, Star } from 'lucide-react';
 
@@ -54,9 +55,17 @@ export default function TopNav({ currentPage, onNavigate, onOpenFeature }: TopNa
       <div className="mx-auto h-12 flex items-center justify-between px-6">
         {/* Left side - Logo/Brand */}
         <div className="flex items-center">
-          <span 
+          <motion.span 
             className="text-lg font-bold dropsource-logo-enhanced cursor-pointer"
             onClick={() => onNavigate('community')}
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 120, 
+              damping: 12,
+              duration: 0.6 
+            }}
             style={{ 
               background: 'linear-gradient(90deg, #00AEEF 0%, #8F63FF 100%)',
               WebkitBackgroundClip: 'text',
@@ -65,7 +74,7 @@ export default function TopNav({ currentPage, onNavigate, onOpenFeature }: TopNa
             }}
           >
             DropSource
-          </span>
+          </motion.span>
         </div>
 
         {/* Center - Navigation Links */}
