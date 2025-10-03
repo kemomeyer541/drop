@@ -48,6 +48,9 @@ import TopNav from './components/TopNav';
 import { DailyReward } from './components/DailyReward';
 import { GamificationManager } from './components/GamificationManager';
 import { EasterEggs } from './components/EasterEggs';
+import { DrawingToolbar } from './components/DrawingToolbar';
+import { LayersPanel } from './components/LayersPanel';
+import { BrushSettingsPanel } from './components/BrushSettingsPanel';
 
 interface Project {
   id: string;
@@ -111,6 +114,7 @@ export default function App() {
   }, []);
   const [isMintingFullscreenOpen, setIsMintingFullscreenOpen] = useState(false);
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
+  const [activeDrawingTool, setActiveDrawingTool] = useState('pencil');
 
   const [projects] = useState<Project[]>([
     {
@@ -581,6 +585,18 @@ export default function App() {
         isOpen={isMintingFullscreenOpen}
         onClose={() => setIsMintingFullscreenOpen(false)}
       />
+
+      {/* Drawing Panels - Show only when in sticker/drawing mode */}
+      {isStickerMode && currentPage === 'pad' && (
+        <>
+          <DrawingToolbar 
+            onToolSelect={setActiveDrawingTool}
+            activeTool={activeDrawingTool}
+          />
+          <BrushSettingsPanel />
+          <LayersPanel />
+        </>
+      )}
 
       {/* Floating Feature Cards - Available on all pages */}
       {floatingFeatures.map((feature) => {
